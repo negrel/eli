@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+source elilib/log
+
+cmdname=$(basename $0)
+
+function print_help {
+  echo "$cmdname - Linux distribution management made easy"
+  echo " "
+  echo "Usage:"
+  echo "  $cmdname [options] [cmd] [cmd options] [cmd args]"
+  echo "  $cmdname"
+  echo " "
+  echo "COMMANDS:"
+  echo "  build                build an elifile"
+  echo " "
+  echo "OPTIONS:"
+  echo "  -h, --help           print this menu"
+}
+
+if [ $# -eq 0 ]; then
+  echo "error: no command specified"
+  print_help
+  exit 1
+fi
+
+# Parse global flags
+while test $# -gt 0; do
+  case "$1" in
+    -h|--help)
+      print_help
+      exit 0
+      ;;
+
+    *)
+      break
+      ;;
+  esac
+done
+
+# Parse command
+while test $# -gt 0; do
+  case "$1" in
+    build)
+      shift
+      source ./elibuild $@
+      exit $?
+      ;;
+    *)
+      echo "error: unknown command \"$1\""
+      echo " "
+      print_help
+      exit 1
+      ;;
+  esac
+done
