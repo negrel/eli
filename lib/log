@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+declare -A log_colors
+log_colors[white]="30"
+log_colors[blue]="34"
+log_colors[green]="32"
+log_colors[yellow]="33"
+log_colors[red]="31"
+
+function color {
+  printf "\033[${log_colors[$1]}m"
+}
+
+function log {
+  local date="$(date --rfc-3339=seconds)"
+
+  printf "%s" "$date"
+  printf " $@"
+  printf "\n"
+}
+
+function _log_level {
+  local color="$1"
+  local level="$2"
+  shift 2
+
+  printf "\033[${log_colors[$color]}m"
+  log "[ELI] [%s] - \033[0m%s" "$level" "$(printf "%s " $@)"
+}
+
+function log_debug {
+  _log_level "blue" "DEBUG" $@
+}
+
+
+function log_info {
+  _log_level "green" "INFO" $@
+}
+
+function log_warn {
+  _log_level "yellow" "WARN" $@
+}
+
+function log_error {
+  _log_level "red" "ERROR" $@
+}
+
+function log_fatal {
+  exit_code="${?:1}"
+
+  _log_level "red" "FATAL" "$@"
+  _log_level "red" "FATAL" "Stacktrace:"
+  stacktrace
+
+  exit $exit_code
+}
+
+function stacktrace {
+  local frame=0 LINE SUB FILE
+  while read LINE SUB FILE < <(caller "$frame"); do
+    printf "\t\033[${log_colors[red]}m%s()\n\t\t%s:%s\033[0m\n" "$SUB" "$FILE" "$LINE"
+    ((frame++))
+  done
+}
