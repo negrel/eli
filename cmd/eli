@@ -19,6 +19,7 @@ USAGE:
 COMMANDS:
   build                build OCI images using efifiles or Dockerfiles
   install              install an images in the given boot partition
+  version              print version of eli
 
 GLOBAL OPTIONS:
   -h, --help           print this menu
@@ -63,6 +64,14 @@ function main {
         "$parent_dir/install/main" "$@"
         exit $?
         ;;
+
+      version)
+        shift
+        cd "$parent_dir"
+        "$parent_dir/version" "$@"
+        cd - 2>&1 > /dev/null
+        ;;
+
       *)
         log_error "unknown command \"$1\""
         print_help

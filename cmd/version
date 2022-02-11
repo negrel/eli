@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+commit=$(git log --format='format:%h;%ai;%d' | head -n 1)
+
+date=$(cut -d ';' -f 2 <<< $commit)
+version=$(cut -d ';' -f 1 <<< $commit)
+
+# Parse tag to get version
+tag="$(cut -d ';' -f 3 <<< $commit | egrep -o 'tag: v[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 | cut -d ' ' -f 2)"
+if [ "$tag" != "" ]; then
+  version="$tag"
+fi
+
+cat <<EOF
+eli $version built at $date
+EOF
