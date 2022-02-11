@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-parent_dir="$(dirname $(readlink -e $0))"
-
-source "$parent_dir/../../lib/log"
+source "$ELI_PATH/lib/log"
+source "$ELI_PATH/lib/traps"
 
 if [ $# -eq 0 ]; then
   log_fatal "missing Dockerfile path"
@@ -10,9 +9,19 @@ fi
 
 dockerfile="$1"
 shift
+cd $(dirname "$dockerfile") 2>&1 > /dev/null
 
-buildah bud -f "$dockerfile" $@ 2>&1 > >(
-  while IFS= read -r line; do
-    log "[BUILDAH] %s" "$line"
-  done
-)
+log_info "starting to build $dockerfile..."
+
+set -e
+buildah bud -f "$(basename $dockerfile)" $@ > >(log_pipe "[BUILDAH] %s") 2>&1
+exit_code="$?"
+set +e
+
+cd - 2>&1 > /dev/null
+if [ "$exit_code" != "0" ]; then
+  log_error "build of $dockerfile failed"
+  exit $exit_code
+fi
+
+log_info "$dockerfile successfully built"

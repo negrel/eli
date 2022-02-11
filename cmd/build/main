@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
 
 parent_dir="$(dirname $(readlink -e $0))"
+source "$ELI_PATH/lib/log"
+source "$ELI_PATH/lib/traps"
 
-source "$parent_dir/../../lib/log"
+set -e
+trap exit_trap EXIT
 
 function print_help {
   cat <<EOF
 Build OCI images using efifiles or Dockerfiles
 
 USAGE:
-  $cmdname my/efifile my/efifile2 [elifile options] -- [buildah commit options]
-  $cmdname my/Dockerfile my/Dockerfile2 [buildah build options]
+  eli build my/efifile my/efifile2 [elifile options] -- [buildah commit options]
+  eli build my/Dockerfile my/Dockerfile2 [buildah build options]
 
 OPTIONS:
   -h, --help           print this menu
@@ -44,52 +47,74 @@ function is_dockerfile {
   fi
 }
 
-declare -A files
-declare -a options
+function main {
+  declare -A files
+  declare -a options
 
-while [ $# -gt 0 ]; do
-  case "$1" in
-    -*|--.*)
-      options+=("$1")
-      shift
+  # Parse build command options
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -h|--help)
+        print_help
+        exit 0
+        ;;
 
-      # Flag value
-      if [ "${1:0:1}" != "-" ]; then
+      *)
+        break
+        ;;
+    esac
+  done
+
+
+  # Parse buildah commit or buildah build options
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -*|--.*)
         options+=("$1")
         shift
-      fi
-      ;;
-    
-    *)
-      if [ "${#options[@]}" != "0" ]; then
-        log_error "files $1 is placed after options \"${options[@]}\", options must be placed after arguments"
-        exit 1
-      fi
 
-      files["$1"]="1"
-      shift
-      ;;
-  esac
-done
+        # Flag value
+        if [ "$1" != "" ] && [ "${1:0:1}" != "-" ]; then
+          options+=("$1")
+          shift
+        fi
+        ;;
+      
+      *)
+        if [ "${#options[@]}" != "0" ]; then
+          log_error "files $1 is placed after options \"${options[@]}\", options must be placed after files"
+          exit 1
+        fi
 
-if [ "${#files[@]}" = "0" ]; then
-  log_error "no file to build specified"
-  exit 1
-fi
+        files["$1"]="1"
+        shift
+        ;;
+    esac
+  done
 
-for file in "${!files[@]}"; do
-  if [ ! -f "$file" ]; then
-    log_error "build $file: no such file"
+  if [ "${#files[@]}" = "0" ]; then
+    log_error "no file to build specified"
     exit 1
   fi
 
-  if [ "$(is_dockerfile $file)" = "true" ]; then
-    source "$parent_dir/dockerfile" $file ${options[@]}
-  else
-    source "$parent_dir/elifile" $file ${options[@]}
-  fi
+  for file in "${!files[@]}"; do
+    if [ ! -f "$file" ]; then
+      log_error "build $file: no such file"
+      exit 1
+    fi
 
-  if [ "$?" != "0" ]; then
-    exit $?
-  fi
-done
+    if [ "$(is_dockerfile $file)" = "true" ]; then
+      source "$parent_dir/dockerfile" $file ${options[@]} || exit $?
+    else
+      source "$parent_dir/elifile" $file ${options[@]} || exit $?
+    fi
+
+    if [ "$?" != "0" ]; then
+      log_error "build of $file failed"
+      stacktrace="false"
+      exit $?
+    fi
+  done
+}
+
+main "$@"

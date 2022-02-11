@@ -19,6 +19,12 @@ function log {
   printf "\n"
 }
 
+function log_pipe {
+  while IFS= read -r line; do
+    log "$1" "$line"
+  done
+}
+
 function _log_level {
   local color="$1"
   local level="$2"
