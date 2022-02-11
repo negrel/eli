@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+
+parent_dir="$(dirname $(readlink -e $0))"
+
+source "$parent_dir/../../lib/log"
+
+function print_help {
+  cat <<EOF
+Build OCI images using efifiles or Dockerfiles
+
+USAGE:
+  $cmdname my/efifile my/efifile2 [elifile options] -- [buildah commit options]
+  $cmdname my/Dockerfile my/Dockerfile2 [buildah build options]
+
+OPTIONS:
+  -h, --help           print this menu
+
+ELIFILE OPTIONS:
+
+BUILDAH COMMIT OPTIONS:
+EOF
+  # Extract flags of buildah commit command
+  buildah commit -h | tail -n+$(buildah commit -h | \
+    egrep -n "^\s+(-\w|--\w)" | head -n 1 | cut -d ':' -f 1)
+
+  cat <<EOF
+BUILDAH BUILDOPTIONS:
+EOF
+  # Extract flags of buildah build command
+  buildah build -h | tail -n+$(buildah build -h | \
+    egrep -n "^\s+(-\w|--\w)" | head -n 1 | cut -d ':' -f 1)
+}
+
+function is_dockerfile {
+  file="$1"
+
+  # Dockerfile first non empty, non comment line must start with FROM
+  egrep -v '^#' < "$file" | egrep -v "^$" | head -n 1 | egrep "^\s*FROM " 2>&1 >/dev/null
+
+  if [ "$?" = "0" ]; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
+declare -A files
+declare -a options
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -*|--.*)
+      options+=("$1")
+      shift
+
+      # Flag value
+      if [ "${1:0:1}" != "-" ]; then
+        options+=("$1")
+        shift
+      fi
+      ;;
+    
+    *)
+      if [ "${#options[@]}" != "0" ]; then
+        log_error "files $1 is placed after options \"${options[@]}\", options must be placed after arguments"
+        exit 1
+      fi
+
+      files["$1"]="1"
+      shift
+      ;;
+  esac
+done
+
+if [ "${#files[@]}" = "0" ]; then
+  log_error "no file to build specified"
+  exit 1
+fi
+
+for file in "${!files[@]}"; do
+  if [ ! -f "$file" ]; then
+    log_error "build $file: no such file"
+    exit 1
+  fi
+
+  if [ "$(is_dockerfile $file)" = "true" ]; then
+    source "$parent_dir/dockerfile" $file ${options[@]}
+  else
+    source "$parent_dir/elifile" $file ${options[@]}
+  fi
+
+  if [ "$?" != "0" ]; then
+    exit $?
+  fi
+done

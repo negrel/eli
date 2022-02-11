@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+parent_dir="$(dirname $(readlink -e $0))"
+
+source "$parent_dir/../../lib/log"
+
+if [ $# -eq 0 ]; then
+  log_fatal "missing Dockerfile path"
+fi
+
+dockerfile="$1"
+shift
+
+buildah bud -f "$dockerfile" $@ 2>&1 > >(
+  while IFS= read -r line; do
+    log "[BUILDAH] %s" "$line"
+  done
+)
