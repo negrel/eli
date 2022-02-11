@@ -11,5 +11,11 @@ function exit_trap {
     stacktrace
   fi
 
+  local log="log_info"
+  if [ "$exit_code" != "0" ]; then
+    log="log_error"
+  fi
+
+  "$log" "exit with status code of $exit_code"
   exit $exit_code
 }
