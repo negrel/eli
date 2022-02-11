@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
 
 parent_dir="$(dirname $(readlink -e $0))"
-source "$parent_dir/../lib/log"
+export ELI_PATH="$parent_dir/.."
 
-cmdname=$(basename $0)
+source "$ELI_PATH/lib/log"
+source "$ELI_PATH/lib/traps"
+
+set -e
+trap exit_trap EXIT
 
 function print_help {
   cat <<EOF
-$cmdname - Linux distribution management made easy
+eli - Linux distribution management made easy
 
 USAGE:
-  $cmdname [global options] [cmd] [cmd options] [cmd args]
+  eli [global options] cmd [cmd options]
   
 COMMANDS:
   build                build OCI images using efifiles or Dockerfiles
@@ -21,45 +25,51 @@ GLOBAL OPTIONS:
 EOF
 }
 
-if [ $# -eq 0 ]; then
-  log_error "no command specified"
-  print_help
-  exit 1
-fi
+function main {
+  if [ $# -eq 0 ]; then
+    log_error "no command specified"
+    print_help
+    exit 1
+  fi
 
-# Parse global flags
-while [ $# -gt 0 ]; do
-  case "$1" in
-    -h|--help)
-      print_help
-      exit 0
-      ;;
+  # Parse flags
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -h|--help)
+        print_help
+        exit 0
+        ;;
 
-    *)
-      break
-      ;;
-  esac
-done
+      *)
+        break
+        ;;
+    esac
+  done
 
-# Parse command
-while [ $# -gt 0 ]; do
-  case "$1" in
-    build)
-      shift
-      "$parent_dir/build/main" $@
-      exit $?
-      ;;
+  # We don't need trap anymore
+  trap "" EXIT
 
-    install)
-      shift
-      "$parent_dir/install" $@
-      exit $?
-      ;;
-    *)
-      echo "error: unknown command \"$1\""
-      echo " "
-      print_help
-      exit 1
-      ;;
-  esac
-done
+  # Parse command
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      build)
+        shift
+        "$parent_dir/build/main" "$@"
+        exit $?
+        ;;
+
+      install)
+        shift
+        "$parent_dir/install/main" "$@"
+        exit $?
+        ;;
+      *)
+        log_error "unknown command \"$1\""
+        print_help
+        exit 1
+        ;;
+    esac
+  done
+}
+
+main "$@"
