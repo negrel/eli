@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+parent_dir="$(dirname $(readlink -e $0))"
+source "$parent_dir/../lib/log"
+
+function print_help {
+  cat <<EOF
+Install the given image onto the system
+
+USAGE:
+  $cmdname [global options] install [options]
+
+OPTIONS:
+  -h, --help           print this menu
+EOF
+}
+
+# Ask for root permissions if not root
+if [ "$EUID" != "0" ]; then
+  log_error "install require root permissions"
+  exit 1
+fi
+
+if [ $# -eq 0 ]; then
+  log_error "no image specified"
+  print_help
+  exit 1
+fi
+
+function clean {
+  exit_code="$?"
+  if [ "$exit_code" != "0" ]; then
+    log_info "exit code $exit_code trapped, cleaning install..."
+  fi
+
+  # Clean container if it exist
+  if [ "buildah inspect $1" != "0" ];  then
+    log_info "unmounting container $ctr..."
+    buildah umount "$1"
+    log_info "container $ctr unmounted"
+
+    log_info "removing container $ctr..."
+    buildah rm "$1"
+    log_info "container $ctr removed"
+  fi
+
+  if [ "$exit_code" != "0" ]; then
+    log_info "install cleaned, stacktrace:"
+    stacktrace
+  else
+    log_info "install cleaned"
+  fi
+  exit $exit_code
+}
+
+function install {(
+  set -e
+  image_name="$1"
+
+  log_info "starting install of $image_name image"
+
+  log_info "creating container for install..."
+  local ctr=$(buildah from "$image_name")
+  log_info "container $ctr created"
+
+  # Clean container on error
+  trap "clean $ctr" EXIT
+
+  log_info "mounting container fs..."
+  local ctr_mount=$(buildah mount "$ctr")
+  log_info "container fs mounted"
+
+  initramfs_cmd=$(buildah inspect -f '{{ index .ImageAnnotations "io.elifile.initramfs.cmd" }}' $1)
+  initramfs_mount=$(buildah inspect -f '{{ index .ImageAnnotations "io.elifile.initramfs.mount" }}' $1)
+
+  # Generate initramfs
+  mkdir -p "$ctr_mount/$initramfs_mount"
+  buildah run \
+    --env HOSTNAME="$image_name" \
+    --mount=type=bind,source=/tmp/boot,destination=/boot \
+    --mount=type=bind,source=/lib/modules,destination=/lib/modules \
+    "$ctr" "$initramfs_cmd"
+
+  set +e
+)}
+
+install "$1"
