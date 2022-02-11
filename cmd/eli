@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+parent_dir="$(dirname $(readlink -e $0))"
+source "$parent_dir/../lib/log"
+
+cmdname=$(basename $0)
+
+function print_help {
+  cat <<EOF
+$cmdname - Linux distribution management made easy
+
+USAGE:
+  $cmdname [global options] [cmd] [cmd options] [cmd args]
+  
+COMMANDS:
+  build                build OCI images using efifiles or Dockerfiles
+  install              install an images in the given boot partition
+
+GLOBAL OPTIONS:
+  -h, --help           print this menu
+EOF
+}
+
+if [ $# -eq 0 ]; then
+  log_error "no command specified"
+  print_help
+  exit 1
+fi
+
+# Parse global flags
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h|--help)
+      print_help
+      exit 0
+      ;;
+
+    *)
+      break
+      ;;
+  esac
+done
+
+# Parse command
+while [ $# -gt 0 ]; do
+  case "$1" in
+    build)
+      shift
+      "$parent_dir/build/main" $@
+      exit $?
+      ;;
+
+    install)
+      shift
+      "$parent_dir/install" $@
+      exit $?
+      ;;
+    *)
+      echo "error: unknown command \"$1\""
+      echo " "
+      print_help
+      exit 1
+      ;;
+  esac
+done
