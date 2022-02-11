@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+source "$ELI_PATH/lib/log"
+
+function exit_trap {
+  exit_code="$?"
+  stacktrace=${stacktrace:="true"}
+
+  if [ "$exit_code" != "0" ] && [ "$stacktrace" = "true" ]; then
+    log_error "exit code $exit_code trapped, stacktrace:"
+    stacktrace
+  fi
+
+  exit $exit_code
+}
