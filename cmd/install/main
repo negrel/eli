@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+
+parent_dir="$(dirname $(readlink -e $0))"
+
+source "$ELI_PATH/lib/log"
+source "$ELI_PATH/lib/traps"
+
+set -e
+trap exit_trap EXIT
+
+function print_help {
+  cat <<EOF
+Install the given image onto the system
+
+USAGE:
+  eli [global options] install image_name1 image_name2 [options]
+
+OPTIONS:
+  -h, --help                 print this menu
+  -d, --initramfs-dest       destination of the initramfs (default: /boot)
+EOF
+}
+
+function clean_install {
+  exit_code="$?"
+  if [ "$exit_code" != "0" ]; then
+    log_info "exit code $exit_code trapped, cleaning install..."
+  fi
+
+  # Clean container if it exist
+  if [ "buildah inspect $1" != "0" ];  then
+    log_info "unmounting container $ctr..."
+    buildah umount "$1"
+    log_info "container $ctr unmounted"
+
+    log_info "removing container $ctr..."
+    buildah rm "$1"
+    log_info "container $ctr removed"
+  fi
+
+  log_info "install cleaned"
+
+  return $exit_code
+}
+
+function install {
+  local image_name="$1"
+  local initramfs_dest="$2"
+
+  log_info "starting install of $image_name image at $initramfs_dest"
+
+  log_info "creating container for install..."
+  local ctr=$(buildah from "$image_name")
+  log_info "container $ctr created"
+
+  # Clean container on error
+  trap "clean_install $ctr" EXIT
+
+  log_info "mounting container fs..."
+  local ctr_rootfs=$(buildah mount "$ctr")
+  log_info "container fs mounted"
+
+  # Getting kernel version
+  kver="$(uname -srm | cut -d ' ' -f 2 || true)"
+  if [ "$kver" = "" ]; then
+    kver="UNDETERMINED"
+  fi
+
+  log_info "generating initramfs..."
+  mkdir -p "$ctr_rootfs/$initramfs_dest"
+  buildah run \
+    --env HOSTNAME="$image_name" \
+    --mount=type=bind,source=$initramfs_dest,destination=/boot \
+    --mount=type=bind,source=/lib/modules,destination=/lib/modules \
+    "$ctr" "/bin/sh" "-c" "KVER=$kver IMAGE_NAME=$image_name /eli/mkinitramfs" > >(log_pipe "[BUILDAH] %s") 2>&1
+  log_info "initramfs generated"
+}
+
+function main {
+  if [ $# -eq 0 ]; then
+    log_error "no image or option specified"
+    print_help
+    stacktrace="false"
+    exit 1
+  fi
+
+
+  declare -A images
+
+  # Parse images
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -*|--*)
+        break
+        ;;
+      
+      *)
+        images["$1"]=""
+        shift
+        ;;
+    esac
+  done
+
+  action="install"
+  initramfs_dest="/boot"
+
+  # Parse options
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -h|--help)
+        print_help
+        exit 0
+        ;;
+
+      -d|--initramfs-dest)
+        shift
+        initramfs_dest="$1"
+        shift
+        ;;
+
+      *)
+        log_error "unknown option \"$1\""
+        stacktrace="false"
+        exit 1
+        ;;
+    esac
+  done
+
+  if [ ! -d "$initramfs_dest" ]; then
+    log_error "$initramfs_dest: no such directory"
+    stacktrace="false"
+    exit 1
+  fi
+
+  # Ask for root permissions if not root
+  if [ "$EUID" != "0" ]; then
+    log_error "install require root permissions"
+    stacktrace="false"
+    exit 1
+  fi
+
+  for image in ${!images[@]}; do
+    "$action" "$image" "$initramfs_dest"
+  done
+}
+
+main "$@"
