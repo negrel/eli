@@ -16,13 +16,15 @@ USAGE:
   eli [global options] install image_name1 image_name2 [options]
 
 OPTIONS:
+  -f, --force                apply --force flag on lvm and other command (default: false)
+  -g, --grub                 path to the grub config, if empty no entry is added to
+                             the config skipped (default: /boot/grub/grub.cfg)
   -h, --help                 print this menu
   -i, --initramfs-dest       destination of the initramfs, if empty the creation
                              of the initramfs is skipped (default: /boot)
-  -d, --squashfs-dest        destination of the root squashfs filesystem, if empty
-                             the creation of the squashfs is skipped (default: '')
   -l, --resize-lvm           prevent root lvm logical volume resize (default: false)
-  -f, --force                apply --force flag on lvm and other command (default: false)
+  -s, --squashfs-dest        destination of the root squashfs filesystem, if empty
+                             the creation of the squashfs is skipped (default: '')
 EOF
 }
 
@@ -51,6 +53,12 @@ function clean_install {
 }
 
 function is_lvm_lv {
+  # If not block file
+  if [ ! -b "$1" ]; then
+    echo "false"
+    return 0
+  fi
+  
   block="$(realpath $1)"
   lvs="$(lvdisplay -c | egrep -o '/.*' | cut -s -d ':' -f 1)"
 
@@ -67,15 +75,21 @@ function is_lvm_lv {
 function install {
   local image_name="$1"
   local initramfs_dest="$2"
-  local rootfs_dest="$3"
+  local squashfs_dest="$3"
   local real_rootfs_dest="$(realpath $3)"
-  local resize_lvm="$4"
-  local force="$5"
+  local grub_path="$4"
+  local resize_lvm="$5"
+  local force="$6"
 
   log_info "starting install of $image_name image"
 
+  from_opts=""
+  if [ "$squashfs_dest" != "" ] && [ -b "$squashfs_dest" ];then
+    from_opts="--device $real_rootfs_dest:$real_rootfs_dest:rw"
+  fi
+
   log_info "creating container for install..."
-  local ctr=$(buildah from --device $real_rootfs_dest:$real_rootfs_dest:rw "$image_name")
+  local ctr=$(buildah from $from_opts "$image_name")
   log_info "container $ctr created"
 
   # Clean container on error
@@ -86,52 +100,52 @@ function install {
   log_info "container fs mounted"
 
   # Getting kernel version
-  kver="$(uname -srm | cut -d ' ' -f 2 || true)"
+  kver="$(uname -r || true)"
   if [ "$kver" = "" ]; then
     kver="UNDETERMINED"
   fi
 
   # Install initramfs
   if [ "$initramfs_dest" != "" ]; then
-    log_info "generating initramfs at $initramfs_dest..."
-    mkdir -p "$ctr_rootfs/$initramfs_dest"
+    log_info "generating initramfs at $initramfs_dest..."    
+
+    mkdir -p "$ctr_rootfs/boot"
     buildah run \
-      --env HOSTNAME="$image_name" \
       --volume $initramfs_dest:/boot \
       --volume /lib/modules:/lib/modules:ro \
+      --mount=type=bind,bind-propagation=rslave,src=/dev,dst=/dev \
+      --mount=type=bind,bind-propagation=rslave,src=/proc,dst=/proc \
+      --mount=type=bind,bind-propagation=rslave,src=/sys,dst=/sys \
       "$ctr" "/bin/sh" "-c" "KVER=$kver IMAGE_NAME=$image_name /eli/mkinitramfs" > >(log_pipe "[BUILDAH] [INITRAMFS] %s") 2>&1
-    log_info "initramfs generated"
+    log_info "initramfs generated at $initramfs_dest"
   else
     log_info "skipping initramfs generation"
   fi
 
-  log_info "adding grub entry..."
-  log_info "grub entry added"
-
   # Create squashfs
-  if [ "$rootfs_dest" != "" ]; then
-    if [ "$resize_lvm" = "true" ] && [ "$(is_lvm_lv $rootfs_dest)" = "true" ]; then
+  if [ "$squashfs_dest" != "" ]; then
+    if [ "$resize_lvm" = "true" ] && [ "$(is_lvm_lv $squashfs_dest)" = "true" ]; then
       log_info "expanding rootfs logical volume..."
       lvresize --quiet --yes $([ "$force" = "true" ] && echo "-f") \
-        --extents +100%FREE $rootfs_dest || true
+        --extents +100%FREE $squashfs_dest || true
       log_info "rootfs logical volume expanded"
     fi
 
-    log_info "installing root filesystem on $rootfs_dest..."
+    log_info "installing root filesystem on $squashfs_dest..."
     buildah run \
-      "$ctr" "/bin/sh" "-c" "mksquashfs / $real_rootfs_dest -noappend -e /proc /sys /run /dev" > >(log_pipe "[BUILDAH] [FSTAB] %s") 2>&1
+      "$ctr" "/bin/sh" "-c" "echo mksquashfs / $real_rootfs_dest -noappend -e /proc /sys /run /dev" > >(log_pipe "[BUILDAH] [SQUASHFS] %s") 2>&1
     log_info "root filesystem installed"
 
-    if [ "$resize_lvm" = "true" ] && [ "$(is_lvm_lv $rootfs_dest)" = "true" ]; then
+    if [ "$resize_lvm" = "true" ] && [ "$(is_lvm_lv $squashfs_dest)" = "true" ]; then
       log_info "shrinking rootfs logical volume..."
       tmpdir="$(mktemp -d)"
 
-      mount "$rootfs_dest" "$tmpdir"
-      local size="$(df -h | tail -n +2 | tr -s ' ' | grep "$rootfs_dest" | cut -d ' ' -f 3)"
-      umount -l "$tmpdir"
+      mount "$squashfs_dest" "$tmpdir"
+      local size="$(df -h | tail -n +2 | tr -s ' ' | grep "$squashfs_dest" | cut -d ' ' -f 3)"
+      umount -l "$tmpdir" ; rm -rf "$tmpdir"
 
       lvresize --quiet --yes $([ "$force" = "true" ] && echo "-f") \
-        --size $size $rootfs_dest || true
+        --size $size $squashfs_dest || true
       log_info "rootfs logical volume shrinked"
     fi
   else
@@ -164,14 +178,31 @@ function main {
     esac
   done
 
-  local rootfs_dest=""
+  local squashfs_dest=""
   local initramfs_dest="/boot"
+  local grub_path="/boot/grub/grub.cfg"
   local resize_lvm="true"
   local force="false"
 
   # Parse options
   while [ $# -gt 0 ]; do
     case "$1" in
+      -f|--force)
+        shift
+        force="true"
+        ;;
+
+      -g|--grub)
+        shift
+        grub_path=$1
+        if [ $# -eq 0 ]; then
+          log_error "missing --grub option value"
+          stacktrace="false"
+          exit 1
+        fi
+        shift
+        ;;
+
       -h|--help)
         print_help
         exit 0
@@ -188,26 +219,21 @@ function main {
         shift
         ;;
 
-      -d|--rootfs-dest)
-        shift
-        rootfs_dest="$1"
-        if [ $# -eq 0 ]; then
-          log_error "missing --rootfs-dest option value"
-          stacktrace="false"
-          exit 1
-        fi
-
-        shift
-        ;;
-
       -l|--resize-lvm)
         shift
         resize_lvm="false"
         ;;
 
-      -f|--force)
+      -s|--squashfs-dest)
         shift
-        force="true"
+        squashfs_dest="$1"
+        if [ $# -eq 0 ]; then
+          log_error "missing --squashfs-dest option value"
+          stacktrace="false"
+          exit 1
+        fi
+
+        shift
         ;;
 
       *)
@@ -218,18 +244,12 @@ function main {
     esac
   done
 
-  if [ "$initramfs_dest" != "" ] && [ ! -d "$initramfs_dest" ]; then
-    log_error "$initramfs_dest: no such directory"
-    stacktrace="false"
-    exit 1
-  fi
-
-  # Ensure rootfs block device file exist
-  if [ "$rootfs_dest" != "" ] && [ ! -b  "$rootfs_dest" ]; then
-    log_error "$rootfs_dest: no such block device"
-    stacktrace="false"
-    exit 1
-  fi
+  # Ensure rootfs block device/file exist
+  # if [ "$squashfs_dest" != "" ] && ([ ! -b  "$squashfs_dest" ] && [ ! -f  "$squashfs_dest" ]); then
+  #   log_error "$squashfs_dest: no such block device"
+  #   stacktrace="false"
+  #   exit 1
+  # fi
 
   # Ask for root permissions if not root
   if [ "$EUID" != "0" ]; then
@@ -239,7 +259,7 @@ function main {
   fi
 
   for image in ${!images[@]}; do
-    install "$image" "$initramfs_dest" "$rootfs_dest" "$resize_lvm" "$force"
+    install "$image" "$initramfs_dest" "$squashfs_dest" "$grub_path" "$resize_lvm" "$force"
   done
 }
 
