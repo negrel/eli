@@ -1,0 +1,6 @@
+FROM voidlinux-base
+
+ADD initramfs/dracut/mkinitramfs /eli/mkinitramfs
+ADD initramfs/dracut/squash /usr/lib/dracut/modules.d/99squash_eli
+
+ADD voidbook/dracut.conf /etc/dracut.conf.d/eli.conf

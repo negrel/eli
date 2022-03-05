@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Skip fsck hooks because otherwise it will try to execute
+# fsck.overlay the installation container use an overlay fs
+mkinitcpio -S fsck -g "$INITRAMFS_DEST"

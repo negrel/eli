@@ -1,0 +1,11 @@
+FROM docker.io/library/archlinux:latest
+
+RUN pacman -Syu --noconfirm mkinitcpio squashfs-tools lvm2 grub
+
+# Patch grub so we can specify GRUB_DEVICE from command line
+RUN sed -i -E 's|^GRUB_DEVICE=(.+)$|GRUB_DEVICE=${GRUB_DEVICE-\1}|' $(command -v grub-mkconfig)
+
+RUN useradd archlinux -u 1010 -mp archlinux
+
+ADD mkinitramfs /eli/mkinitramfs
+ADD mkinitramfs /eli/mkinitramfs

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+if [ -z "$INITRAMFS_DEST" ]; then
+  echo "missing INITRAMFS_DEST option."
+  exit 1
+fi
+
+if [ -z "$SQUASHFS_IMG" ]; then
+  echo "missing SQUASHFS_IMG option."
+  exit 1
+fi
+
+if [ -z "$KERNEL_VERSION" ]; then
+  echo "missing KERNEL_VERSION option."
+  exit 1
+fi
+
+
+dracut --hostonly --reproducible --force \
+  --include "$SQUASHFS_IMG" "/squash/root.img" \
+  $@ "$INITRAMFS_DEST" "$KERNEL_VERSION"

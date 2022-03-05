@@ -1,0 +1,7 @@
+FROM docker.io/voidlinux/voidlinux:latest
+
+RUN xbps-install -Syu dracut squashfs-tools grub linux
+RUN xbps-remove -ROo
+
+# Patch grub so we can specify GRUB_DEVICE from command line
+RUN sed -i -E 's|^GRUB_DEVICE=(.+)$|GRUB_DEVICE=${GRUB_DEVICE-\1}|' $(command -v grub-mkconfig)
