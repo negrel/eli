@@ -14,9 +14,9 @@ function color {
 function log {
   local date="$(date --rfc-3339=seconds)"
 
-  printf "%s" "$date"
-  printf " $@"
-  printf "\n"
+  printf "%s" "$date" 1>&2
+  printf " $@" 1>&2
+  printf "\n" 1>&2
 }
 
 function log_pipe {
@@ -30,14 +30,15 @@ function _log_level {
   local level="$2"
   shift 2
 
-  printf "\033[${log_colors[$color]}m"
+  printf "\033[${log_colors[$color]}m" 1>&2
   log "[ELI] [%s] - \033[0m%s" "$level" "$(printf "%s " $@)"
 }
 
 function log_debug {
-  _log_level "blue" "DEBUG" $@
+  if [ -n "$ELI_DEBUG" ]; then
+    _log_level "blue" "DEBUG" $@
+  fi
 }
-
 
 function log_info {
   _log_level "green" "INFO" $@
@@ -52,10 +53,10 @@ function log_error {
 }
 
 function log_fatal {
-  exit_code="${?:1}"
+  local exit_code="${?:1}"
 
   _log_level "red" "FATAL" "$@"
-  _log_level "red" "FATAL" "Stacktrace:"
+  _log_level "red" "FATAL" "stacktrace:"
   stacktrace
 
   exit $exit_code
@@ -64,7 +65,7 @@ function log_fatal {
 function stacktrace {
   local frame=0 LINE SUB FILE
   while read LINE SUB FILE < <(caller "$frame"); do
-    printf "\t\033[${log_colors[red]}m%s()\n\t\t%s:%s\033[0m\n" "$SUB" "$FILE" "$LINE"
+    printf "\t\033[${log_colors[red]}m%s()\n\t\t%s:%s\033[0m\n" "$SUB" "$FILE" "$LINE" 1>&2
     ((frame++))
   done
 }
