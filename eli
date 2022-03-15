@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
+
+set -e
+
+source "$SCRIPT_DIR/lib/log.sh"
+source "$SCRIPT_DIR/lib/traps.sh"
+source "$SCRIPT_DIR/lib/run.sh"
+source "$SCRIPT_DIR/lib/deps.sh"
+source "$SCRIPT_DIR/lib/buildah.sh"
+
+trap exit_trap EXIT
+
+if [ -n "$ELI_TRACE" ]; then
+  set -x
+fi
+
+source "$SCRIPT_DIR/cmd/eli.sh"
+main $@
