@@ -1,0 +1,43 @@
+FROM docker.io/library/archlinux:latest
+
+ENV ELI_IMAGE=archlinux
+
+RUN mkdir /eli
+
+# Install required packages
+## squashfs-tools provides mksquashfs
+## grub provides grub-mkconfig
+## linux provides vmlinuz
+## libisoburn provides xorriso
+## syslinux provides isolinux files
+## dosfstools provides mkfs.vfat
+RUN pacman -Syu --noconfirm \
+  dracut squashfs-tools grub amd-ucode intel-ucode linux libisoburn syslinux dosfstools
+
+# Link kernel to /boot/vmlinuz-*
+RUN ln /usr/lib/modules/*/vmlinuz /boot/vmlinuz-$(basename $(dirname /usr/lib/modules/*/vmlinuz))
+
+# Patch grub so we can specify GRUB_DEVICE and GRUB_DEVICE_BOOT from command line
+RUN sed -i -E 's|^GRUB_DEVICE=(.+)$|GRUB_DEVICE=${GRUB_DEVICE-\1}|g' $(command -v grub-mkconfig)
+RUN sed -i -E 's|^GRUB_DEVICE_BOOT=(.+)$|GRUB_DEVICE_BOOT=${GRUB_DEVICE_BOOT-\1}|g' $(command -v grub-mkconfig)
+
+# TODO patch dmsquash-live module to allow hostonly
+
+# Add dracut configuration
+ADD ./distributions/archlinux/dracut.conf /etc/dracut.conf.d/eli.conf
+
+# Add eli scripts
+ADD ./scripts/initramfs/dracut/mkinitramfs /eli/scripts/mkinitramfs
+ADD ./scripts/common/ /eli/scripts
+
+# Remove root password
+RUN usermod -p '' root
+
+# Setup timezone
+RUN ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime
+
+# DHCP client, Wifi and man pages
+RUN pacman -Syu --noconfirm \
+  dhcpcd \
+  wpa_supplicant \
+  man-db \

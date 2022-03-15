@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+opt=()
+
+if [ -n "$ELI_TRACE" ]; then
+  set -x
+  opt+="-info"
+fi
+
+mksquashfs / "/eli/rootfs.sqsh" \
+  ${opt[@]} -no-progress -noappend -reproducible -e dev proc sys run boot eli

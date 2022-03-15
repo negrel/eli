@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+if [ -n "$ELI_TRACE" ]; then
+  set -x
+fi
+
+mkdir -p /boot/grub
+
+GRUB_DEVICE=${GRUB_DEVICE:-/} \
+GRUB_DEVICE_BOOT=${GRUB_DEVICE_BOOT:-/boot} \
+  grub-mkconfig -o /boot/grub/grub.cfg

@@ -1,0 +1,160 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [ -n "$ELI_TRACE" ]; then
+  set -x
+fi
+
+: ${ELI_IMAGE:="Eli Linux"}
+
+# TODO option for custom VOLID
+# Transform image name into valid volume ID
+# img-name --> IMG_NAME
+VOLID=$(tr '-' '_' <<< "$ELI_IMAGE" | tr a-z A-Z)
+ISO_DIR="/eli/isodir"
+ISO_BOOT_DIR="$ISO_DIR/boot"
+ISO_GRUB_DIR="$ISO_BOOT_DIR/grub"
+ISO_ISOLINUX_DIR="$ISO_BOOT_DIR/isolinux"
+ISO_LIVE_DIR="$ISO_DIR/LiveOS"
+KVER=$(/eli/scripts/kver)
+BASE_ARCH=$(uname -m)
+
+# Default values
+: ${KEYMAP:=us}
+: ${LOCALE:=en_US.UTF-8}
+: ${BOOT_TITLE:=$(tr '_' ' ' <<<"$VOLID")}
+: ${ISOLINUX_BIN:=$SYSLINUX_DATADIR/isolinux.bin}
+
+function setup_isodir {
+  rm -rf $ISO_DIR
+  
+  # Create directory structure
+  mkdir -p \
+    $ISO_DIR \
+    $ISO_BOOT_DIR \
+    $ISO_GRUB_DIR \
+    $ISO_GRUB_DIR/fonts \
+    $ISO_ISOLINUX_DIR \
+    $ISO_LIVE_DIR
+
+  ln /boot/vmlinuz-*       $ISO_BOOT_DIR/vmlinuz
+  ln /boot/initramfs-*.img $ISO_BOOT_DIR/initramfs
+  ln /eli/rootfs.sqsh      $ISO_LIVE_DIR/rootfs.img
+
+}
+
+function generate_isolinux_cfg() {
+    sed \
+      -e "s|@@VOLID@@|$VOLID|" \
+      -e "s|@@KERNVER@@|$KVER|" \
+      -e "s|@@KEYMAP@@|$KEYMAP|" \
+      -e "s|@@ARCH@@|$BASE_ARCH|" \
+      -e "s|@@LOCALE@@|$LOCALE|" \
+      -e "s|@@BOOT_TITLE@@|$BOOT_TITLE|" \
+      -e "s|@@BOOT_CMDLINE@@|$BOOT_CMDLINE|" \
+      /eli/scripts/mkiso.tpl/isolinux.cfg > $ISO_ISOLINUX_DIR/isolinux.cfg
+}
+
+function generate_isolinux_boot {
+  local isolinux_bin=($(find / -name isolinux.bin 2> /dev/null))
+  local ldlinux=($(find / -name ldlinux.c32 2> /dev/null))
+  local libcom32=($(find / -name libcom32.c32 2> /dev/null))
+  local vesamenu=($(find / -name vesamenu.c32 2> /dev/null))
+  local libutil=($(find / -name libutil.c32 2> /dev/null))
+  local chain=($(find / -name chain.c32 2> /dev/null))
+
+  ln $isolinux_bin $ISO_ISOLINUX_DIR
+  ln $ldlinux      $ISO_ISOLINUX_DIR
+  ln $libcom32     $ISO_ISOLINUX_DIR
+  ln $vesamenu     $ISO_ISOLINUX_DIR
+  ln $libutil      $ISO_ISOLINUX_DIR
+  ln $chain        $ISO_ISOLINUX_DIR
+}
+
+function generate_grub_cfg {
+  ln /eli/scripts/mkiso.tpl/grub.cfg $ISO_GRUB_DIR/
+  sed \
+    -e "s|@@VOLID@@|$VOLID|" \
+    -e "s|@@KERNVER@@|$KVER|" \
+    -e "s|@@KEYMAP@@|$KEYMAP|" \
+    -e "s|@@ARCH@@|$BASE_ARCH|" \
+    -e "s|@@LOCALE@@|$LOCALE|" \
+    -e "s|@@BOOT_TITLE@@|$BOOT_TITLE|" \
+    -e "s|@@BOOT_CMDLINE@@|$BOOT_CMDLINE|" \
+    /eli/scripts/mkiso.tpl/grub_live.cfg > $ISO_GRUB_DIR/grub_live.cfg
+}
+
+function generate_grub_efi_boot {
+  local fonts=($(find / -name unicode.pf2 2> /dev/null))
+  ln "$fonts" $ISO_GRUB_DIR/fonts/unicode.pf2
+
+  # Create EFI vfat image.
+  truncate -s 32M $ISO_GRUB_DIR/efiboot.img
+  mkfs.vfat -F12 -S 512 -n "grub_uefi" $ISO_GRUB_DIR/efiboot.img
+
+  # Mount it
+  local mnt_dir="/mnt/"
+  local loop_dev="$(losetup --show --find $ISO_GRUB_DIR/efiboot.img)"
+  mount -o rw,flush -t vfat "$loop_dev" "$mnt_dir"
+  mkdir -p "$mnt_dir/EFI/BOOT"
+
+
+  # Install for i386-efi
+  grub-mkstandalone \
+    --directory="/usr/lib/grub/i386-efi" \
+    --format="i386-efi" \
+    --output="$mnt_dir/EFI/BOOT/BOOTIA32.EFI" \
+    "boot/grub/grub.cfg=$ISO_GRUB_DIR/grub.cfg"
+
+  # Install for x86_64-efi
+  grub-mkstandalone \
+    --directory="/usr/lib/grub/x86_64-efi" \
+    --format="x86_64-efi" \
+    --output="$mnt_dir/EFI/BOOT/BOOTX64.EFI" \
+    "boot/grub/grub.cfg=$ISO_GRUB_DIR/grub.cfg"
+
+  # Clean it
+  umount "$mnt_dir"
+  losetup --detach "$loop_dev"
+}
+
+function generate_iso {
+  local isohdpfx=($(find / -name isohdpfx.bin 2>/dev/null))
+  
+  xorriso -as mkisofs \
+    -iso-level 3 -rock -joliet \
+    -max-iso9660-filenames -omit-period \
+    -omit-version-number -relaxed-filenames -allow-lowercase \
+    -volid "$VOLID" \
+    -eltorito-boot boot/isolinux/isolinux.bin \
+    -eltorito-catalog boot/isolinux/boot.cat \
+    -no-emul-boot -boot-load-size 4 -boot-info-table \
+    -eltorito-alt-boot -e boot/grub/efiboot.img -isohybrid-gpt-basdat -no-emul-boot \
+    -isohybrid-mbr $isohdpfx \
+    -output /boot/eli.iso $ISO_DIR
+}
+
+echo "setting up iso dir..."
+setup_isodir
+echo "iso dir setted up."
+
+echo "generating isolinux config..."
+generate_isolinux_cfg
+echo "isolinux config generated."
+
+echo "generating isolinux bios boot..."
+generate_isolinux_boot
+echo "isolinux bios boot generated."
+
+echo "generation grub config..."
+generate_grub_cfg
+echo "grub config generated."
+
+echo "generating grub efi boot..."
+generate_grub_efi_boot
+echo "grub efi boot generated."
+
+echo "generating iso at \"/boot/eli.iso\"..."
+generate_iso
+echo "iso file generated at \"/boot/eli.iso\"."

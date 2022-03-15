@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+if [ -n "$ELI_TRACE" ]; then
+  set -x
+fi
+
+kver=$(/eli/scripts/kver)
+
+dracut --reproducible --force \
+  $@ "/boot/initramfs-$kver.img" "$kver"
