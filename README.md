@@ -5,6 +5,10 @@ Eli - Linux distribution management made easy
 Eli relies on the following commands:
 - `buildah`: A tool that facilitates building OCI images.
 
+### Kernel modules
+
+- `loop`: to setup loopback device while generating Grub EFI boot image.
+
 ## Installation
 
 To install eli, just clone the repository and create a `cmd/eli` symlink.
@@ -17,6 +21,8 @@ ln -s `pwd`/cmd/eli /usr/local/bin/eli
 ```
 
 ## Update
+
+It's simple as pulling from the master branch:
 
 ```shell
 $ git pull origin master
