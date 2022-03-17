@@ -12,6 +12,7 @@ fi
 # Transform image name into valid volume ID
 # img-name --> IMG_NAME
 VOLID=$(tr '-' '_' <<< "$ELI_IMAGE" | tr a-z A-Z)
+ISO_DST="/boot/eli.iso"
 ISO_DIR="/eli/isodir"
 ISO_BOOT_DIR="$ISO_DIR/boot"
 ISO_GRUB_DIR="$ISO_BOOT_DIR/grub"
@@ -27,7 +28,9 @@ BASE_ARCH=$(uname -m)
 : ${ISOLINUX_BIN:=$SYSLINUX_DATADIR/isolinux.bin}
 
 function setup_isodir {
-  rm -rf $ISO_DIR
+  if [ -e $ISO_DST ]; then
+    exit 0
+  fi
   
   # Create directory structure
   mkdir -p \
@@ -132,7 +135,7 @@ function generate_iso {
     -no-emul-boot -boot-load-size 4 -boot-info-table \
     -eltorito-alt-boot -e boot/grub/efiboot.img -isohybrid-gpt-basdat -no-emul-boot \
     -isohybrid-mbr $isohdpfx \
-    -output /boot/eli.iso $ISO_DIR
+    -output $ISO_DST $ISO_DIR
 }
 
 echo "setting up iso dir..."

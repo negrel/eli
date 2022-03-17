@@ -4,8 +4,14 @@ if [ -n "$ELI_TRACE" ]; then
   set -x
 fi
 
+GRUB_CFG_DST="/boot/grub/grub.cfg"
+
+if [ -e $GRUB_CFG_DST ]; then
+  exit 0
+fi
+
 mkdir -p /boot/grub
 
 GRUB_DEVICE=${GRUB_DEVICE:-/} \
 GRUB_DEVICE_BOOT=${GRUB_DEVICE_BOOT:-/boot} \
-  grub-mkconfig -o /boot/grub/grub.cfg
+  grub-mkconfig -o $GRUB_CFG_DST
