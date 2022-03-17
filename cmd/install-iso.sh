@@ -8,24 +8,6 @@ function print_help {
 EOF
 }
 
-function prepare_ctr {
-  log_info "creating container from image \"$1\"..."
-  local ctr=$(buildah_from $1)
-  log_info "container \"$ctr\"created from image \"$1\"."
-
-  log_info "mounting container \"$ctr\" on host..."
-  mnt_dir=$(buildah_mount $ctr)
-  log_info "container \"$ctr\" mounted on host."
-
-  echo $ctr $mnt_dir
-}
-
-function destroy_ctr {
-  log_info "removing container \"$1\"..."
-  buildah_rm $1 2>&1 > >(log_pipe "[BUILDAH] %s")
-  log_info "container $1 removed."
-}
-
 function copy_iso {
   log_info "copying iso to \"$2\"..."
   run dd if="$1/boot/eli.iso" of="$2" bs=4M status=progress > >(log_pipe "[COPY] %s") 2>&1 
@@ -47,11 +29,18 @@ function main {
     stacktrace=n exit 1
   fi
 
-  local prep=($(prepare_ctr $img))
+  log_info "preparing image \"$img\" for install..."
+  local prep=($(create_and_mount_ctr $img))
   local ctr=${prep[0]}
   local ctr_dir=${prep[1]}
 
-  copy_iso $ctr_dir $dst
+  generate_squashfs $ctr
+  generate_initramfs $ctr
+  generate_iso $ctr
+  log_info "image \"$img\" ready for install."
 
+  log_info "installing ISO of \"$img\" on \"$dst\"..."
+  copy_iso $ctr_dir $dst
   destroy_ctr $ctr
+  log_info "ISO of \"$img\" installed on \"$dst\"."
 }

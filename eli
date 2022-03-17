@@ -9,6 +9,7 @@ source "$SCRIPT_DIR/lib/traps.sh"
 source "$SCRIPT_DIR/lib/run.sh"
 source "$SCRIPT_DIR/lib/deps.sh"
 source "$SCRIPT_DIR/lib/buildah.sh"
+source "$SCRIPT_DIR/lib/container.sh"
 
 trap exit_trap EXIT
 
