@@ -1,0 +1,17 @@
+ARG BASE_IMAGE=eli/archlinux
+
+FROM $BASE_IMAGE
+
+# DHCP client, Wifi and man pages
+RUN pacman -Syu --noconfirm \
+  dosfstools \
+  syslinux \
+  libisoburn \
+  man-db \
+  man-pages \
+  dhcpcd \
+  wpa_supplicant \
+  iwd \
+  iw \
+  wireless_tools \
+  && pacman -Scc

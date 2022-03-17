@@ -4,7 +4,7 @@ ENV ELI_IMAGE=archlinux
 
 RUN mkdir /eli
 
-# Install required packages
+# Install packages required for an install
 ## squashfs-tools provides mksquashfs
 ## grub provides grub-mkconfig
 ## linux provides vmlinuz
@@ -12,10 +12,19 @@ RUN mkdir /eli
 ## syslinux provides isolinux files
 ## dosfstools provides mkfs.vfat
 RUN pacman -Syu --noconfirm \
-  dracut squashfs-tools grub amd-ucode intel-ucode linux libisoburn syslinux dosfstools
+  dracut \
+  squashfs-tools \
+  grub \
+  amd-ucode \
+  intel-ucode \
+  linux \
+  && pacman -Scc
 
 # Link kernel to /boot/vmlinuz-*
 RUN ln /usr/lib/modules/*/vmlinuz /boot/vmlinuz-$(basename $(dirname /usr/lib/modules/*/vmlinuz))
+
+# Remove NoExtract from pacman conf
+RUN sed -i -E 's|^NoExtract\s+=\s+.*$||' /etc/pacman.conf
 
 # Patch grub so we can specify GRUB_DEVICE and GRUB_DEVICE_BOOT from command line
 RUN sed -i -E 's|^GRUB_DEVICE=(.+)$|GRUB_DEVICE=${GRUB_DEVICE-\1}|g' $(command -v grub-mkconfig)
@@ -35,9 +44,3 @@ RUN usermod -p '' root
 
 # Setup timezone
 RUN ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime
-
-# DHCP client, Wifi and man pages
-RUN pacman -Syu --noconfirm \
-  dhcpcd \
-  wpa_supplicant \
-  man-db \

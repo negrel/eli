@@ -1,3 +1,3 @@
-# `archlinux-base` - Base ArchLinux image
+# `archlinux` - Minimal ArchLinux image
 
-This directory contains material used to build the `archlinux-base` image.
+This directory contains materials used to build the `archlinux` image and more sophisticated derived.
