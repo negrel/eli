@@ -1,4 +1,4 @@
-Eli - Linux distribution management made easy
+# Eli - Linux distribution management made easy
 
 ## Dependencies
 
@@ -27,3 +27,15 @@ It's simple as pulling from the master branch:
 ```shell
 $ git pull origin master
 ```
+
+## TODO
+
+- [ ] Write help menu
+- [ ] Write man pages
+- [ ] Permanent partition on ISO installation
+- [ ] Host installation (no ISO) in /boot/eli/<image>
+- [ ] Provide example of full installation.
+- [ ] Run eli.sh in container by default so we only depends on `buildah`
+  - Provide CPU quota, memory limit and more (installation is CPU intensive)
+- [ ] Ensure there is enough space on target device before starting installation
+- [ ] Add dependency check (container and host) before starting installation
