@@ -8,11 +8,13 @@ function print_help {
 EOF
 }
 
-function copy_iso {
-  log_info "copying iso to \"$2\"..."
-  run dd if="$1/boot/eli.iso" of="$2" bs=4M status=progress > >(log_pipe "[COPY] %s") 2>&1 
-  run sync > >(log_pipe "[COPY] %s") 2>&1 
-  log_info "iso copied to \"$2\"."
+function generate_iso_at {  
+  log_info "generating ISO in container \"$1\" at \"$2\"..."
+  buildah_run --mount type=bind,source="$2",destination=/eli/iso.iso \
+    -t --user root \
+    --isolation chroot --cap-add=CAP_SYS_ADMIN --cap-add=CAP_MKNOD \
+    $1 /eli/scripts/mkiso > >(log_pipe "[MKISO] %s") 2>&1
+  log_info "ISO image generated at \"$2\" in container \"$1\"."
 }
 
 function main {

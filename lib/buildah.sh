@@ -24,13 +24,12 @@ function buildah_rm {
 
 function buildah_run {
   local ctr="$1"
-  shift
-  local cmd="$@"
-
   if [ -z "$ctr" ]; then
     log_fatal "missing CTR argument"
   fi
+  shift
 
+  local cmd="$@"
   if [ -z "$cmd" ]; then
     log_fatal "missing CMD argument"
   fi
@@ -43,19 +42,29 @@ function buildah_run {
 
 function buildah_mount {
   local ctr="$1"
-  shift
-
   if [ -z "$ctr" ]; then
     log_fatal "missing CTR argument"
   fi
+  shift
+
 
   run buildah mount $ctr
+}
+
+function buildah_inspect {
+  local ctr="$1"
+  if [ -z "$ctr" ]; then
+    log_fatal "missing CTR argument"
+  fi
+  shift
+
+
+  run buildah inspect $@ $ctr
 }
 
 function buildah_commit {
   local ctr="$1"
   local img="$2"
-  shift 2
 
   if [ -z "$ctr" ]; then
     log_fatal "missing CTR argument"
@@ -64,6 +73,7 @@ function buildah_commit {
   if [ -z "$img" ]; then
     log_fatal "missing IMG argument"
   fi
+  shift 2
   
   run buildah commit $@ $ctr $img
 }

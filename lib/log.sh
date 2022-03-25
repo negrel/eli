@@ -12,7 +12,7 @@ function color {
 }
 
 function log {
-  local date="$(date --rfc-3339=seconds)"
+  local date="$(date -Iseconds)"
 
   printf "%s" "$date" 1>&2
   printf " $@" 1>&2

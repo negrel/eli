@@ -9,7 +9,7 @@ source "$SCRIPT_DIR/lib/traps.sh"
 source "$SCRIPT_DIR/lib/run.sh"
 source "$SCRIPT_DIR/lib/deps.sh"
 source "$SCRIPT_DIR/lib/buildah.sh"
-source "$SCRIPT_DIR/lib/container.sh"
+source "$SCRIPT_DIR/lib/install_utils.sh"
 
 trap exit_trap EXIT
 
@@ -17,5 +17,9 @@ if [ -n "$ELI_TRACE" ]; then
   set -x
 fi
 
-source "$SCRIPT_DIR/cmd/eli.sh"
-main $@
+function eli_cmd {
+  source "$SCRIPT_DIR/cmd/eli.sh"
+  main $@
+}
+
+eli_cmd $@
