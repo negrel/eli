@@ -22,12 +22,28 @@ function main {
   local dst=$2
 
   if [ -z "$img" ]; then
-    log_error "missing IMG option"
+    log_error "missing IMG option."
     stacktrace=n exit 1
   fi
 
   if [ -z "$dst" ]; then
-    log_error "missing DST option"
+    log_error "missing DST option."
+    stacktrace=n exit 1
+  fi
+
+  if [ ! -e "$dst" ]; then
+    log_info "destination file \"$dst\" don't exist, creating it..."
+    touch "$dst"
+    log_info "destination file \"$dst\" created."
+  fi
+
+  if [ ! -w "$dst" -a]; then
+    log_error "can't write to destination file: \"$dst\""
+    stacktrace=n exit 1
+  fi
+
+  if [ -d "$dst" ]; then
+    log_error "\"$dst\" is a directory."
     stacktrace=n exit 1
   fi
 
@@ -35,14 +51,13 @@ function main {
   local prep=($(create_and_mount_ctr $img))
   local ctr=${prep[0]}
   local ctr_dir=${prep[1]}
+  log_info "image \"$img\" ready for install, starting installation..."
 
+  add_image_env $img $ctr_dir
   generate_squashfs $ctr
   generate_initramfs $ctr
-  generate_iso $ctr
-  log_info "image \"$img\" ready for install."
-
-  log_info "installing ISO of \"$img\" on \"$dst\"..."
-  copy_iso $ctr_dir $dst
+  generate_iso_at $ctr $dst
   destroy_ctr $ctr
-  log_info "ISO of \"$img\" installed on \"$dst\"."
+
+  log_info "ISO installed successfully."
 }
