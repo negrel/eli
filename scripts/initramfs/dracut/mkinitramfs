@@ -4,7 +4,12 @@ if [ -n "$ELI_TRACE" ]; then
   set -x
 fi
 
-kver=$(/eli/scripts/kver)
+# Public variables
+: ${ELI_KVER:=$(/eli/scripts/kver)}
+
+if [ -f "/boot/initramfs-$ELI_KVER.img" ]; then
+  exit 0
+fi
 
 dracut --reproducible --force \
-  $@ "/boot/initramfs-$kver.img" "$kver"
+  $@ "/boot/initramfs-$ELI_KVER.img" "$ELI_KVER" >&2

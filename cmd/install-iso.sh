@@ -9,11 +9,17 @@ EOF
 }
 
 function generate_iso_at {  
+  local isolation="oci"
+  if  [ -b "$2" ]; then
+    log_info "destination is a block device, switch container isolation to chroot"
+    isolation="chroot"
+  fi
+  
   log_info "generating ISO in container \"$1\" at \"$2\"..."
   buildah_run --mount type=bind,source="$2",destination=/eli/iso.iso \
-    -t --user root \
-    --isolation chroot --cap-add=CAP_SYS_ADMIN --cap-add=CAP_MKNOD \
-    $1 /eli/scripts/mkiso > >(log_pipe "[MKISO] %s") 2>&1
+    --user root \
+    --isolation $isolation \
+    $1 /eli/scripts/mkiso 2> >(log_pipe "[MKISO] %s")
   log_info "ISO image generated at \"$2\" in container \"$1\"."
 }
 
@@ -37,7 +43,7 @@ function main {
     log_info "destination file \"$dst\" created."
   fi
 
-  if [ ! -w "$dst" -a]; then
+  if [ ! -w "$dst" ]; then
     log_error "can't write to destination file: \"$dst\""
     stacktrace=n exit 1
   fi
@@ -46,6 +52,7 @@ function main {
     log_error "\"$dst\" is a directory."
     stacktrace=n exit 1
   fi
+  shift 2
 
   log_info "preparing image \"$img\" for install..."
   local prep=($(create_and_mount_ctr $img))

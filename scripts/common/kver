@@ -5,19 +5,19 @@ if [ -n "$ELI_TRACE" ]; then
 fi
 
 # Store in an array as the image may contain multiple kernel version
-kvers=($(ls -m /usr/lib/modules | tr -d ','))
+kvers=($(ls -m /usr/lib/modules | tr -d ',' | tr ' ' '\n' | sort -n -r | tr '\n' ' '))
 
 if [ -n "$ELI_DEBUG" ]; then
   kvers_count="${#kvers[@]}"
 
   # Log available kernel versions on stderr
-  echo "$kvers_count version(s) available(s):" >&2
+  echo "$kvers_count kernel version(s) available(s):" >&2
   for kver in ${kvers[@]}; do
     echo "  $kver" >&2
   done
-  echo "selecting ${kvers[$kver_count]}" >&2
+  echo "selecting ${kvers[0]}" >&2
 fi
 
 # We only return the last element in the array
 # which should be the most recent version
-echo "${kvers[-1]}"
+echo "${kvers[0]}"

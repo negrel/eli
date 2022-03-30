@@ -7,11 +7,12 @@ if [ -n "$ELI_TRACE" ]; then
   opt+="-info"
 fi
 
-SQUASHFS_DST="/eli/rootfs.sqsh"
+SQUASHFS_DST="/boot/rootfs.sqsh"
 
-if [ -e $SQUASHFS_DST ]; then
+if [ -e "$SQUASHFS_DST" ]; then
   exit 0
 fi
 
 mksquashfs / $SQUASHFS_DST \
-  ${opt[@]} -no-progress -noappend -reproducible -e dev proc sys run boot eli
+  ${opt[@]} -no-progress -noappend -reproducible \
+  -e dev proc sys run boot eli >&2
