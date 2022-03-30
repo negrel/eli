@@ -1,0 +1,80 @@
+FROM docker.io/library/ubuntu:focal
+
+ARG KVER=5.13.0-37
+ARG ELI_INTEL_UCODE=y
+ARG ELI_AMD_UCODE=y
+ARG TZ=Etc/UTC
+ARG KEYMAP=fr
+ARG ROOT_PASSWD=""
+
+ENV ELI_IMAGE=ubuntu
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt update \
+  && apt install -y \
+    grub2 \
+    grub-pc-bin \
+    grub-efi-ia32-bin \
+    grub-efi-amd64-bin \
+    grub-theme-starfield \
+    mtools \
+    dracut \
+    systemd-sysv \
+    isomd5sum \
+    xorriso \
+    squashfs-tools \
+    linux-image-$KVER-generic \
+  && apt autoremove; apt clean
+
+RUN rm -rf /boot/initrd* /boot/vmlinuz.old
+
+# Change grub defaults
+RUN sed -i -E \
+  -e 's/GRUB_TIMEOUT=[0-9]+/GRUB_TIMEOUT=5/' \
+  -e 's/GRUB_TIMEOUT_STYLE=\w+/GRUB_TIMEOUT_STYLE=menu/' \
+  /etc/default/grub ;\
+  echo "GRUB_GFXMODE=auto" >> /etc/default/grub ;\
+  echo "GRUB_GFXPAYLOAD_LINUX=text" >> /etc/default/grub
+
+# Intel microcode
+RUN if [ "$ELI_INTEL_UCODE" = "y" ]; then \
+    apt install -y intel-microcode ;\
+  fi
+
+# AMD microcode
+RUN if [ "$ELI_INTEL_UCODE" = "y" ]; then \
+    apt install -y amd64-microcode ;\
+  fi
+
+# Set timezone
+RUN ln -sf "/usr/share/zoneinfo/$TZ" /etc/localtime
+
+# Keyboard layout
+RUN echo "KEYMAP=$KEYMAP" > /etc/vconsole.conf
+
+# Patch grub so we can specify GRUB_DEVICE and GRUB_DEVICE_BOOT from command line
+RUN sed -i -E 's|^GRUB_DEVICE=(.+)$|GRUB_DEVICE=${GRUB_DEVICE-\1}|g' $(command -v grub-mkconfig)
+RUN sed -i -E 's|^GRUB_DEVICE_BOOT=(.+)$|GRUB_DEVICE_BOOT=${GRUB_DEVICE_BOOT-\1}|g' $(command -v grub-mkconfig)
+
+# Remove root password
+RUN usermod -p "$ROOT_PASSWD" root
+
+# Patch PAM config so we can login even in container
+RUN sed -i -E '/session\s+required\s+pam_loginuid.so/c\#session required pam_loginuid.so' /etc/pam.d/login
+
+# /eli directory structure
+RUN mkdir -p \
+  /eli \
+  /eli/scripts
+
+# Add dracut configuration
+COPY ./distributions/ubuntu/dracut.conf /etc/dracut.conf.d/99-eli.conf
+
+# Add scripts
+COPY ./scripts/initramfs/dracut/mkinitramfs /eli/scripts/mkinitramfs
+COPY ./scripts/common/ /eli/scripts/
+
+# Create /etc/machine-id so we can use systemd as entrypoint
+RUN dbus-uuidgen --ensure=/etc/machine-id
+
+ENTRYPOINT ["/lib/systemd/systemd"]
