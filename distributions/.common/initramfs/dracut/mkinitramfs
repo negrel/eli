@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
+source /eli/lib/log.sh
+
+set -e
+
+if [ -n "$ELI_TRACE" ]; then
+  set -x
+fi
+
+# Public variables
+: ${ELI_KVER:=$(/eli/scripts/kver)}
+: ${ELI_INITRAMFS_DST:="/boot/initramfs-$ELI_KVER.img"}
+: ${ELI_INITRAMFS_OVERWRITE:="f"}
+
+if [ -f "$ELI_INITRAMFS_DST" -a "$ELI_INITRAMFS_OVERWRITE" != "y" ]; then
+  log_warn "initramfs image already exist, skipping generation."
+  exit 0
+fi
+
+log_info "generating initramfs image..."
+
+dracut --reproducible --force \
+  $@ "/boot/initramfs-$ELI_KVER.img" "$ELI_KVER" >&2
+
+log_info "initramfs image generated."

@@ -7,7 +7,6 @@ ARG TZ=Etc/UTC
 ARG KEYMAP=fr
 ARG ROOT_PASSWD=""
 
-ENV ELI_IMAGE=ubuntu
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt update \

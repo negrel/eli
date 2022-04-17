@@ -1,0 +1,10 @@
+# Add dracut configuration
+COPY ./$ELI_DISTRIB/dracut.conf /etc/dracut.conf.d/99-eli.conf
+
+# COPY ./.common/initramfs/dracut/module /usr/lib/dracut/modules.d/95dmsquash-root
+COPY ./.common/initramfs/dracut/mkinitramfs /eli/scripts/mkinitramfs
+COPY ./.common/initramfs/dracut/patches /eli/patches
+
+# COPY ./.common/initramfs/dracut/module/dmsquash-live-root-patched.sh /usr/lib/dracut/modules.d/90dmsquash-live/dmsquash-live-root.sh
+
+# RUN patch -u /usr/lib/dracut/modules.d/90dmsquash-live/dmsquash-live-root.sh -i /eli/patches/dmsquash-root.sh.patch

@@ -3,6 +3,7 @@
 ## Dependencies
 
 Eli relies on the following commands:
+- `bash`: GNU Bourne Again SHell.
 - `buildah`: A tool that facilitates building OCI images.
 
 ### Kernel modules
@@ -39,3 +40,4 @@ $ git pull origin master
   - Provide CPU quota, memory limit and more (installation is CPU intensive)
 - [ ] Ensure there is enough space on target device before starting installation
 - [ ] Add dependency check (container and host) before starting installation
+- [ ] Add support for SHELL instruction

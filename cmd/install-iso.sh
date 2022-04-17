@@ -11,16 +11,16 @@ EOF
 function generate_iso_at {  
   local isolation="oci"
   if  [ -b "$2" ]; then
-    log_info "destination is a block device, switch container isolation to chroot"
+    log_info "destination is a block device, switch container isolation to chroot."
     isolation="chroot"
   fi
   
-  log_info "generating ISO in container \"$1\" at \"$2\"..."
+  log_info "generating ISO image at \"$2\"..."
   buildah_run --mount type=bind,source="$2",destination=/eli/iso.iso \
     --user root \
     --isolation $isolation \
-    $1 /eli/scripts/mkiso 2> >(log_pipe "[MKISO] %s")
-  log_info "ISO image generated at \"$2\" in container \"$1\"."
+    $1 /eli/scripts/install-iso
+  log_info "ISO image successfully generated at \"$2\"."
 }
 
 function main {
@@ -54,17 +54,12 @@ function main {
   fi
   shift 2
 
-  log_info "preparing image \"$img\" for install..."
-  local prep=($(create_and_mount_ctr $img))
+  log_info "preparing container for image \"$img\"..."
+  local prep=($(prepare_ctr_from $img))
   local ctr=${prep[0]}
   local ctr_dir=${prep[1]}
-  log_info "image \"$img\" ready for install, starting installation..."
+  log_info "container \"$ctr\" based on image \"$img\" ready for install."
 
-  add_image_env $img $ctr_dir
-  generate_squashfs $ctr
-  generate_initramfs $ctr
-  generate_iso_at $ctr $dst
+  generate_iso_at $ctr $dst 
   destroy_ctr $ctr
-
-  log_info "ISO installed successfully."
 }

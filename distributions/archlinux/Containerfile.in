@@ -1,0 +1,44 @@
+FROM docker.io/library/archlinux:latest
+
+ARG ELI_INTEL_UCODE=y
+ARG ELI_AMD_UCODE=y
+
+ARG ELI_DISTRIB=archlinux
+
+# Install packages required for an install
+RUN pacman -Syu --needed --noconfirm --hookdir $(mktemp -d)\
+  dracut \
+  squashfs-tools \
+  grub \
+  libisoburn \
+  mtools \
+  linux \
+  linux-firmware \
+  lvm2 \
+  cryptsetup \
+  efibootmgr \
+  patch \
+  && pacman -Scc
+
+RUN rm -rf /boot/grub*
+
+# Microcode
+RUN if [ "$ELI_INTEL_UCODE" = "y" ]; then \
+    pacman -S --needed --noconfirm intel-ucode; \
+  fi
+RUN if [ "$ELI_AMD_UCODE" = "y" ]; then \
+    pacman -S --needed --noconfirm amd-ucode; \
+  fi
+
+# include "distributions/.common/Containerfile-keymap"
+# include "distributions/.common/Containerfile-timezone"
+# include "distributions/.common/Containerfile-root-passwd"
+# include "distributions/.common/Containerfile-grub"
+# include "distributions/.common/Containerfile-dracut"
+# include "distributions/.common/Containerfile-common"
+
+# Remove NoExtract from pacman conf
+RUN sed -i -E 's|^NoExtract\s+=\s+.*$||' /etc/pacman.conf
+
+# Link kernel to /boot/vmlinuz-*
+RUN ln /usr/lib/modules/$(/eli/scripts/kver)/vmlinuz /boot/vmlinuz-$(/eli/scripts/kver)

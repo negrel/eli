@@ -1,0 +1,7 @@
+FROM eli/archlinux
+
+ARG ELI_DISTRIB=archlinux
+
+# include "./.common/Containerfile-grub"
+# include "./.common/Containerfile-dracut"
+# include "./.common/Containerfile-common"

@@ -1,0 +1,71 @@
+FROM docker.io/library/debian:bullseye
+
+ARG KVER=5.10.0-10
+ARG ELI_INTEL_UCODE=y
+ARG ELI_AMD_UCODE=y
+ARG TZ=Etc/UTC
+ARG KEYMAP=fr
+ARG ROOT_PASSWD=""
+
+ENV ELI_IMAGE=debian
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Add contrib and non-free source list
+RUN if [ "$ELI_INTEL_UCODE" = "y" -o "$ELI_AMD_UCODE" = "y" ]; then \
+    sed -iE 's/bullseye main$/bullseye main contrib non-free/' /etc/apt/sources.list ;\
+    apt update ;\
+  fi
+
+# Intel microcode
+RUN if [ "$ELI_INTEL_UCODE" = "y" ]; then \
+    apt install -y intel-microcode ;\
+  fi
+
+# AMD microcode
+RUN if [ "$ELI_INTEL_UCODE" = "y" ]; then \
+    apt install -y amd64-microcode ;\
+  fi
+
+# Set timezone
+RUN ln -sf "/usr/share/zoneinfo/$TZ" /etc/localtime
+
+# Keyboard layout
+RUN echo "KEYMAP=$KEYMAP" > /etc/vconsole.conf
+
+RUN apt update \
+  && apt install -y \
+    grub2 \
+    grub-pc-bin \
+    grub-efi-ia32-bin \
+    grub-efi-amd64-bin \
+    grub-theme-starfield \
+    mtools \
+    dracut \
+    systemd-sysv \
+    isomd5sum \
+    xorriso \
+    squashfs-tools \
+    linux-image-$KVER-$(dpkg --print-architecture) \
+  && apt autoremove; apt clean
+
+# Patch grub so we can specify GRUB_DEVICE and GRUB_DEVICE_BOOT from command line
+RUN sed -i -E 's|^GRUB_DEVICE=(.+)$|GRUB_DEVICE=${GRUB_DEVICE-\1}|g' $(command -v grub-mkconfig)
+RUN sed -i -E 's|^GRUB_DEVICE_BOOT=(.+)$|GRUB_DEVICE_BOOT=${GRUB_DEVICE_BOOT-\1}|g' $(command -v grub-mkconfig)
+
+# Remove root password
+RUN usermod -p '' root
+
+# /eli directory structure
+RUN mkdir -p \
+  /eli \
+  /eli/scripts
+
+# Add dracut configuration
+COPY ./distributions/debian/dracut.conf /etc/dracut.conf.d/eli.conf
+
+# Add scripts
+COPY ./scripts/initramfs/dracut/mkinitramfs /eli/scripts/mkinitramfs
+COPY ./scripts/common/ /eli/scripts/
+
+# Link kernel to /boot/vmlinuz-*
+RUN ln /usr/lib/modules/$(/eli/scripts/kver)/vmlinuz /boot/vmlinuz-$(/eli/scripts/kver)

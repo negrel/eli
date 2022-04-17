@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
+source /eli/lib/log.sh
+
+set -e
+
+if [ -n "$ELI_TRACE" ]; then
+  set -x
+fi
+
+(
+  eval $(lsblk -nP $1 -o UUID,PARTUUID,LABEL,PARTLABEL)
+
+  if [ ! -z "$UUID" ]; then
+    echo "UUID=$UUID"
+    exit 0
+  else
+    log_warn "no UUID found for \"$1\", trying PARTUUID..."
+  fi
+
+  if [ ! -z "$PARTUUID" ]; then
+    echo "PARTUUID=$PARTUUID"
+    exit 0
+  else
+    log_warn "no PARTUUID found for \"$1\", trying LABEL..."
+  fi
+
+  if [ ! -z "$LABEL" ]; then
+    echo "LABEL=$LABEL"
+    exit 0
+  else
+    log_warn "no LABEL found for \"$1\", trying PARTLABEL..."
+  fi
+
+  if [ ! -z "$PARTLABEL" ]; then
+    echo "PARTLABEL=$PARTLABEL"
+    exit 0
+  else
+    log_warn "no PARTLABEL found for \"$1\", falling back to DEVNAME."
+  fi
+
+  echo "$1"
+)

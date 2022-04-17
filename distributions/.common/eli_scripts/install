@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
+source /eli/lib/log.sh
+
+set -e
+
+if [ -n "$ELI_TRACE" ]; then
+  set -x
+fi
+
+# Public variables
+: ${ELI_ROOTFS_DEVICE:=""}
+: ${ELI_BOOTLOADER_DEVICE:=""}
+: ${ELI_BOOTLOADER_TARGET:="x86_64-efi"}
+: ${ELI_BOOTLOADER_ID:="$(sed -E 's/[^a-zA-Z0-9]/_/' <<< "$ELI_IMAGE" | tr 'a-z' 'A-Z')"}
+
+
+BOOT_DIR="/boot"
+BOOT_GRUB_DIR="$BOOT_DIR/grub"
+
+function setup_BOOT_DIR {
+  mkdir -p \
+    "$BOOT_DIR" \
+    "$BOOT_GRUB_DIR"
+
+  # Copy regular files and directories
+  # for f in /boot/*; do
+  #   if [ -d "$f" -o -f "$f" ]; then
+  #     cp -rf "$f" "$BOOT_DIR/"
+  #   fi
+  # done
+}
+
+function is_valid_device {
+    if [ -z "$2" ]; then
+    log_error "missing $1 option."
+    exit 1
+  fi
+
+  if [ ! -b "$2" ]; then
+    log_error "file \"$2\" ($1) is not a device or don't exist."
+    exit 1
+  fi
+
+  if [ ! -w "$2" ]; then
+    log_error "can't write to \"$2\" ($1)."
+    exit 1
+  fi
+}
+
+is_valid_device "ELI_ROOTFS_DEVICE" "$ELI_ROOTFS_DEVICE"
+is_valid_device "ELI_BOOTLOADER_DEVICE" "$ELI_BOOTLOADER_DEVICE"
+
+( ELI_ROOTFS_DST="$ELI_ROOTFS_DEVICE" ELI_ROOTFS_OVERWRITE="f" source /eli/scripts/prepare-install )
+
+log_debug "preparing boot device..."
+mv /boot/ /eli/boot
+mkdir /boot
+mount "$ELI_BOOTLOADER_DEVICE" "/boot"
+cp -r /eli/boot/* /boot
+log_debug "boot device ready."
+
+log_debug "determining kernel root parameter..."
+root_param="$(/eli/scripts/root_kparam $ELI_ROOTFS_DEVICE)"
+log_debug "kernel root parameter will be \"$root_param\"."
+
+ELI_BOOTLOADER_CFG_DST="$BOOT_GRUB_DIR/grub.cfg" \
+ELI_ROOTFS_DST="live:$root_param" \
+  /eli/scripts/mkgrub-config 2>&1
+
+grub-install --target="$ELI_BOOTLOADER_TARGET" --boot-directory="$BOOT_DIR" \
+  --efi-directory="$BOOT_DIR" \
+  --removable \
+  "$ELI_BOOTLOADER_DEVICE"
