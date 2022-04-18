@@ -34,7 +34,7 @@ function setup_isodir {
 }
 
 function generate_grub_cfg {
-  ln -f /eli/scripts/mkiso.d/grub.cfg $ISO_GRUB_DIR/grub.cfg
+  ln -f /eli/assets/grub_iso.cfg $ISO_GRUB_DIR/grub.cfg
 
   rm -f $ISO_GRUB_DIR/grub_live.cfg
   ELI_BOOTLOADER_CFG_DST="$ISO_GRUB_DIR/grub_live.cfg" \

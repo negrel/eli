@@ -1,0 +1,4 @@
+# Add dracut configuration
+COPY ./$ELI_DISTRIB/dracut.conf /etc/dracut.conf.d/99-eli.conf
+
+COPY ./.common/initramfs/dracut/mkinitramfs /eli/scripts/mkinitramfs

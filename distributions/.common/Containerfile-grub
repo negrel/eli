@@ -1,0 +1,6 @@
+# Add our grub scripts
+COPY ./.common/assets/grub_iso.cfg /eli/assets/grub_iso.cfg
+
+# Patch grub so we can specify GRUB_DEVICE and GRUB_DEVICE_BOOT from command line
+RUN sed -i -E 's|^GRUB_DEVICE=(.+)$|GRUB_DEVICE=${GRUB_DEVICE-\1}|g' $(command -v grub-mkconfig)
+RUN sed -i -E 's|^GRUB_DEVICE_BOOT=(.+)$|GRUB_DEVICE_BOOT=${GRUB_DEVICE_BOOT-\1}|g' $(command -v grub-mkconfig)

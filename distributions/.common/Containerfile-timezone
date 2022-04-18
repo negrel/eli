@@ -1,0 +1,4 @@
+ARG TZ=Etc/UTC
+
+# Set timezone
+RUN ln -sf "/usr/share/zoneinfo/$TZ" /etc/localtime
