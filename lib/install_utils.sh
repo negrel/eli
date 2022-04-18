@@ -3,14 +3,31 @@
 source "$SCRIPT_DIR/lib/log.sh"
 source "$SCRIPT_DIR/lib/buildah.sh"
 
-function create_and_mount_ctr {
+function prepare_ctr_from {
   log_info "creating container from image \"$1\"..."
-  local ctr=$(buildah_from $1 2> >(log_pipe "[BUILDAH] %s"))
+  local ctr=$(buildah_from $1)
   log_info "container \"$ctr\" created from image \"$1\"."
 
   log_info "mounting container \"$ctr\" on host..."
-  mnt_dir=$(buildah_mount $ctr 2> >(log_pipe "[BUILDAH] %s"))
+  mnt_dir=$(buildah_mount $ctr)
   log_info "container \"$ctr\" mounted on host."
+
+  log_info "preparing container \"$ctr\"..."
+
+  # Mounting /proc /dev /sys and /run
+  log_info "mounting \"/dev\" \"/proc\" \"/sys\" \"/run\" directories..."
+  for d in dev proc sys run; do
+    log_debug "mounting \"$d\" in container..."
+    mount --rbind /$d "$mnt_dir/$d"
+    mount --make-rslave "$mnt_dir/$d"
+    log_debug "\"$d\" mounted."
+  done
+  log_info "directories\"/dev\" \"/proc\" \"/sys\" \"/run\" mounted."
+
+  local eli_image="${ELI_IMAGE:-$1}"
+  buildah config --env ELI_IMAGE="$eli_image" $ctr
+  add_image_env $1 $mnt_dir
+  log_info "container \"$ctr\" ready."
 
   echo $ctr $mnt_dir
 }
@@ -19,18 +36,6 @@ function destroy_ctr {
   log_info "removing container \"$1\"..."
   buildah_rm $1 2> >(log_pipe "[BUILDAH] %s")
   log_info "container $1 removed."
-}
-
-function generate_squashfs {
-  log_info "generating squashfs in container \"$1\"..."
-  buildah_run --user root $1 /eli/scripts/mksquashfs 2> >(log_pipe "[MKSQUASHFS] %s")
-  log_info "squashfs generated in container \"$1\"."
-}
-
-function generate_initramfs {
-  log_info "generating initramfs in \"$1\"..."
-  buildah_run --user root $1 /eli/scripts/mkinitramfs 2> >(log_pipe "[MKINITRAMFS] %s") 
-  log_info "initramfs generated in \"$1\"."
 }
 
 function _env_ociv1 {
@@ -80,15 +85,16 @@ function add_image_env {
   fi
   
   for envvar in $(image_env $1); do
-    log_debug "adding \"$envvar\" environment variable..."
+    local env="$(_unquote_string $envvar)"
+    log_debug "adding \"$env\" environment variable..."
 
-    if [ "${envvar##ELI_}" != "$envvar" ]; then
-      log_debug "\"$envvar\" contains \"ELI_\" prefix, skipping it."
+    if [ "${env##ELI_}" != "$env" ]; then
+      log_debug "\"$env\" contains \"ELI_\" prefix, skipping it."
       continue
     fi
-    echo "$(_unquote_string $envvar)" >> "$envfile"
+    echo "$env" >> "$envfile"
 
-    log_debug "\"$envvar\" environment variable added..."
+    log_debug "\"$env\" environment variable added."
   done
   log_info "\"$1\" image environment variable added."
 }

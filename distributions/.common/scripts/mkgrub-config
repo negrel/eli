@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
+source /eli/lib/log.sh
+
+set -e
+
+if [ -n "$ELI_TRACE" ]; then
+  set -x
+fi
+
+: ${ELI_BOOTLOADER_CFG_DST:="/boot/grub/grub.cfg"}
+
+log_info "generating grub config..."
+
+mkdir -p $(dirname $ELI_BOOTLOADER_CFG_DST)
+
+GRUB_DEVICE=${ELI_ROOTFS_DST:-/} \
+GRUB_DEVICE_BOOT=${ELI_BOOTLOADER_DEVICE:-/boot} \
+  grub-mkconfig -o $ELI_BOOTLOADER_CFG_DST >&2
+
+log_info "grub config generated."

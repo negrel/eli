@@ -3,6 +3,7 @@
 ## Dependencies
 
 Eli relies on the following commands:
+- `bash`: GNU Bourne Again SHell.
 - `buildah`: A tool that facilitates building OCI images.
 
 ### Kernel modules

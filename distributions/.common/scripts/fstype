@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [ -n "$ELI_TRACE" ]; then
+  set -x
+fi
+
+blkid -s TYPE -o value $@ | tr '\n' ' '

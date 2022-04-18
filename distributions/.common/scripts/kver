@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
+source /eli/lib/log.sh
+
 if [ -n "$ELI_TRACE" ]; then
   set -x
 fi
@@ -11,11 +14,11 @@ if [ -n "$ELI_DEBUG" ]; then
   kvers_count="${#kvers[@]}"
 
   # Log available kernel versions on stderr
-  echo "$kvers_count kernel version(s) available(s):" >&2
+  log_info "$kvers_count kernel version(s) available(s):"
   for kver in ${kvers[@]}; do
-    echo "  $kver" >&2
+    log_info "  $kver"
   done
-  echo "selecting ${kvers[0]}" >&2
+  log_info "selecting ${kvers[0]}"
 fi
 
 # We only return the last element in the array
