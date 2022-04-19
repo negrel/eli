@@ -50,7 +50,7 @@ function _env_docker_ctr_cfg {
   buildah_inspect $1 | jq -r '.Docker.container_config.Env|@sh' || true
 }
 
-function image_env {
+function _image_env {
   declare -a result
   result=($(_env_ociv1 $1))
   if [ "${#result[@]}" != "0" ]; then
@@ -69,6 +69,16 @@ function image_env {
     echo "${result[@]}"
     return 0
   fi
+}
+
+function image_env {
+  local envs=($(_image_env $1))
+
+  for i in ${!envs[@]}; do
+    envs[i]="$(_unquote_string ${envs[$i]})"
+  done
+
+  echo "${envs[@]}"
 }
 
 function _unquote_string {
@@ -97,4 +107,12 @@ function add_image_env {
     log_debug "\"$env\" environment variable added."
   done
   log_info "\"$1\" image environment variable added."
+}
+
+function ctr_chroot {
+  local ctr_mnt="$(buildah mount $1)"
+  local ctr_env=($(image_env $1))
+  shift
+
+  sudo chroot $ctr_mnt /bin/sh -c "${ctr_env[*]}; $*"
 }
