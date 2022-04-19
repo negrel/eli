@@ -12,25 +12,12 @@ fi
 # Public variables
 : ${ELI_ROOTFS_DEVICE:=""}
 : ${ELI_BOOTLOADER_DEVICE:=""}
-: ${ELI_BOOTLOADER_TARGET:="x86_64-efi"}
+: ${ELI_BOOTLOADER_ARCH:="x86_64-efi"}
 : ${ELI_BOOTLOADER_ID:="$(sed -E 's/[^a-zA-Z0-9]/_/' <<< "$ELI_IMAGE" | tr 'a-z' 'A-Z')"}
 
 
 BOOT_DIR="/boot"
 BOOT_GRUB_DIR="$BOOT_DIR/grub"
-
-function setup_BOOT_DIR {
-  mkdir -p \
-    "$BOOT_DIR" \
-    "$BOOT_GRUB_DIR"
-
-  # Copy regular files and directories
-  # for f in /boot/*; do
-  #   if [ -d "$f" -o -f "$f" ]; then
-  #     cp -rf "$f" "$BOOT_DIR/"
-  #   fi
-  # done
-}
 
 function is_valid_device {
     if [ -z "$2" ]; then
@@ -69,7 +56,7 @@ ELI_BOOTLOADER_CFG_DST="$BOOT_GRUB_DIR/grub.cfg" \
 ELI_ROOTFS_DST="live:$root_param" \
   /eli/scripts/mkgrub-config 2>&1
 
-grub-install --target="$ELI_BOOTLOADER_TARGET" --boot-directory="$BOOT_DIR" \
+grub-install --target="$ELI_ARCH" --boot-directory="$BOOT_DIR" \
   --efi-directory="$BOOT_DIR" \
   --removable \
   "$ELI_BOOTLOADER_DEVICE"

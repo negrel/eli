@@ -22,4 +22,6 @@ function eli_cmd {
   main $@
 }
 
+cmdname=$0
+
 eli_cmd $@

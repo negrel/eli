@@ -2,11 +2,20 @@
 
 function print_help {
   cat <<EOF
-eli - Linux distribution management and install made easy.
+eli - Front-end CLI to install OCI/Docker images.
+
+USAGE:
+  $cmdname [options] subcommands [subcommands options]
+  $cmdname -h
+  $cmdname install --help
+  $cmdname install-iso --help
 
 OPTIONS:
+  -h, --help print this menu
 
 COMMANDS:
+  install     install an OCI/Docker image on disk
+  install-iso generate an ISO from the given OCI/Docker image
 
 EOF
 }
