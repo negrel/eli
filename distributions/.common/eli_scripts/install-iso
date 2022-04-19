@@ -11,7 +11,7 @@ fi
 
 # Public variables
 : ${ELI_IMAGE:="Eli Linux"}
-: ${ELI_VOLUME_ID:="$(sed -E 's/[^a-zA-Z0-9]/_/' <<< "$ELI_IMAGE" | tr 'a-z' 'A-Z')"}
+: ${ELI_VOLUME_ID:="$(tr -c '[:alnum:]' '_' <<< "$ELI_IMAGE" | tr 'a-z' 'A-Z')"}
 : ${ELI_PERSISTENT_PART=y}
 
 ISO_DST="/eli/iso.iso"
@@ -64,13 +64,3 @@ generate_grub_cfg
 log_info "generating iso..."
 generate_iso
 log_info "iso file generated."
-
-# if [ "$ELI_PERSISTENT_PART" = "y" ]; then
-#   if [ ! -b "$ISO_DST" ]; then
-#     log "\"$ISO_DST\" is a not a block device, can't add a persistent partition"
-#     exit 0
-#   fi
-  
-#   log "adding a persistent partition to \"$ISO_DST\"..."
-#   log "persistent partition added to \"$ISO_DST\"."
-# fi
