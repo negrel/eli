@@ -26,7 +26,7 @@ function prepare_ctr_from {
 
   local eli_image="${ELI_IMAGE:-$1}"
   buildah config --env ELI_IMAGE="$eli_image" $ctr
-  add_image_env $1 $mnt_dir
+  add_image_env $1 $ctr $mnt_dir
   log_info "container \"$ctr\" ready."
 
   echo $ctr $mnt_dir
@@ -88,12 +88,12 @@ function _unquote_string {
 }
 
 function add_image_env {
-  log_info "adding \"$1\" image environment variable to installation..."
-  local envfile="$2/etc/environment.d/99-eli.conf"
-  if [ ! -d "$2/etc/environment.d" ]; then
-    envfile="$2/etc/environment"
-  fi
-  
+  local img="$1"
+  local ctr="$2"
+  local ctr_dir="$3"
+
+  log_info "adding \"$img\" image environment variable to installation..."
+
   for envvar in $(image_env $1); do
     local env="$(_unquote_string $envvar)"
     log_debug "adding \"$env\" environment variable..."
@@ -102,7 +102,8 @@ function add_image_env {
       log_debug "\"$env\" contains \"ELI_\" prefix, skipping it."
       continue
     fi
-    echo "$env" >> "$envfile"
+
+    ctr_chroot $ctr /eli/scripts/set_env $envvar
 
     log_debug "\"$env\" environment variable added."
   done
