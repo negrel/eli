@@ -11,9 +11,9 @@ USAGE:
 
 OPTIONS:
   -a, --arch                    bootloader target architecture to use for installation (default: x86_64-efi)
-  -b, --bootloader-overwrite    overwrite the bootloader and not just the configuration (default: true)
-  -B, --no-bootloader-overwrite prevent overwriting of the bootloader
   --debug                       enable debug logs
+  -i, --initramfs-overwrite     overwrite initramfs if one is already present in the image
+  -I, --no-initramfs-overwrite  prevent initramfs overwrite
   -h, --help                    print this menu
   -o, --option                  custom option that will be passed to the image install script
   -r, --rootfs-overwrite        overwrite the root filesystem device (default: true)
@@ -51,13 +51,13 @@ function main {
         shift
         ;;
 
-      -b|--bootloader-overwrite)
-        options+=("ELI_BOOTLOADER_OVERWRITE=y")
+      -i|--initramfs-overwrite)
+        options+=("ELI_INITRAMFS_OVERWRITE=y")
         shift
         ;;
 
-      -B|--no-bootloader-overwrite)
-        options+=("ELI_BOOTLOADER_OVERWRITE=n")
+      -I|--no-initramfs-overwrite)
+        options+=("ELI_INITRAMFS_OVERWRITE=n")
         shift
         ;;
 
