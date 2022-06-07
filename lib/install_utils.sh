@@ -22,7 +22,7 @@ function prepare_ctr_from {
     mount --make-rslave "$mnt_dir/$d"
     log_debug "\"$d\" mounted."
   done
-  log_info "directories\"/dev\" \"/proc\" \"/sys\" \"/run\" mounted."
+  log_info "directories \"/dev\" \"/proc\" \"/sys\" \"/run\" mounted."
 
   local eli_image="${ELI_IMAGE:-$1}"
   buildah config --env ELI_IMAGE="$eli_image" $ctr
