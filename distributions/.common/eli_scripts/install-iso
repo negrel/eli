@@ -12,7 +12,6 @@ fi
 # Public variables
 : ${ELI_IMAGE:="Eli Linux"}
 : ${ELI_VOLUME_ID:="$(tr -c '[:alnum:]' '_' <<< "$ELI_IMAGE" | tr 'a-z' 'A-Z')"}
-: ${ELI_PERSISTENT_PART=y}
 
 ISO_DST="/eli/iso.iso"
 ISO_DIR="/eli/isodir"
@@ -30,7 +29,7 @@ function setup_isodir {
     "$ISO_LIVE_DIR"
 
   cp -lr /boot "$ISO_DIR"
-  mv "$ISO_BOOT_DIR/rootfs.img" "$ISO_LIVE_DIR/rootfs.img"
+  mv "$ISO_BOOT_DIR/squashfs.img" "$ISO_LIVE_DIR/squashfs.img"
 }
 
 function generate_grub_cfg {
@@ -53,7 +52,10 @@ function generate_iso {
     -volid "$ELI_VOLUME_ID"
 }
 
-( ELI_ROOTFS_DST="/boot/rootfs.img" source /eli/scripts/prepare-install )
+log_info "preparing installation..."
+( source /eli/scripts/mksquashfs )
+( source /eli/scripts/mkinitramfs )
+log_info "ready for installation."
 
 log_info "setting up iso dir..."
 setup_isodir

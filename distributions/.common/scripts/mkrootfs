@@ -1,1 +1,63 @@
-./mksquashfs
+#!/usr/bin/env bash
+
+ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
+source /eli/lib/log.sh
+
+set -e
+
+if [ -n "$ELI_TRACE" ]; then
+  set -x
+fi
+
+: ${ELI_ROOTFS_DST:="/boot/squashfs.img"}
+: ${ELI_ROOTFS_OVERWRITE:="n"}
+
+if [ -e "$ELI_ROOTFS_DST"
+    -a "$(/eli/scripts/fstype $ELI_ROOTFS_DST)" = "ext3"
+    -a "$ELI_ROOTFS_OVERWRITE" != "y" ]; then
+  log_warn "rootfs image already exist, skipping generation."
+  exit 0
+fi
+
+if [ "$(/eli/scripts/fstype $ELI_ROOTFS_DST)" != "ext3" ]; then
+  # Creating an ext3 rootfs that will contains our fs image.
+  log_info "creating ext3 rootfs image..."
+
+  fs_size=""
+  if [ ! -e "$ELI_ROOTFS_DST" ]; then
+    # Create fs image and truncate it with 16T
+    fs_size="1T"
+    touch "$ELI_ROOTFS_DST"
+    truncate --size=$fs_size "$ELI_ROOTFS_DST"
+  fi
+
+  mkfs.ext3 "$ELI_ROOTFS_DST" $fs_size <<< "$ELI_ROOTFS_OVERWRITE"
+  log_info "ext3 rootfs image created."
+fi
+
+log_debug "creating rootfs mount directory..."
+mount_dst=$(mktemp -d)
+log_debug "rootfs mount directory created."
+
+mount_opts=()
+if [ -f "$ELI_ROOTFS_DST" ]; then
+  log_debug "rootfs is an image, mount using a loop device."
+  mount_opts+=" -o loop"
+fi
+
+log_debug "mounting rootfs..."
+mount ${mount_opts[@]} "$ELI_ROOTFS_DST" "$mount_dst"
+log_debug "rootfs mounted."
+
+mkdir -p "$mount_dst/LiveOS"
+( ELI_ROOTFS_DST="$mount_dst/LiveOS/squashfs.img" source /eli/scripts/mksquashfs )
+
+log_debug "unmounting rootfs..."
+umount $mount_dst
+log_debug "rootfs unmounted."
+
+if [ -f "$ELI_ROOTFS_DST" ]; then
+  log_debug "shrinking rootfs image..."
+  resize2fs -fM "$ELI_ROOTFS_DST"
+  log_debug "rootfs image shrinked."
+fi
