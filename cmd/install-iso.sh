@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-
 function print_help {
   cat <<EOF
 $cmdname install-iso - install/generate an ISO from an OCI/Docker image.

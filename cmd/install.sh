@@ -31,7 +31,7 @@ function install_at {
 
   log_info "installing image..."
 
-  echo ctr_chroot $ctr \
+  ctr_chroot $ctr \
     ELI_ROOTFS_DEVICE="$rootfs_dev" \
     ELI_BOOTLOADER_DEVICE="$boot_dev" \
     $@ \
@@ -62,7 +62,8 @@ function main {
         ;;
 
       --debug)
-        ELI_DEBUG=y
+        shift
+        options+=("ELI_DEBUG=y")
         ;;
 
       -h|--help)
@@ -91,7 +92,7 @@ function main {
 
       --trace)
         shift
-        set -x
+        options+=("ELI_TRACE=y")
         ;;
 
       --)
