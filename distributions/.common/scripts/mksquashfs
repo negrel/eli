@@ -12,10 +12,10 @@ if [ -n "$ELI_TRACE" ]; then
   opt+="-info"
 fi
 
-: ${ELI_ROOTFS_DST:="/boot/rootfs.img"}
+: ${ELI_ROOTFS_DST:="/boot/squashfs.img"}
 : ${ELI_ROOTFS_OVERWRITE:="f"}
 
-if [ -e "$ELI_ROOTFS_DST"  -a "$ELI_ROOTFS_OVERWRITE" != "y"  ]; then
+if [ -e "$ELI_ROOTFS_DST" -a "$ELI_ROOTFS_OVERWRITE" != "y" ]; then
   log_warn "rootfs image already exist, skipping generation."
   exit 0
 fi
@@ -24,6 +24,6 @@ log_info "generating rootfs image..."
 
 mksquashfs / $ELI_ROOTFS_DST \
   ${opt[@]} -no-progress -noappend -reproducible \
-  -wildcards -e 'dev/*' 'proc/*' 'sys/*' 'run/*' 'boot/*' 'eli' >&2
+  -wildcards -e 'dev/*' 'proc/*' 'sys/*' 'run/*' 'tmp/*' 'boot/*' 'eli' >&2
 
 log_info "rootfs image generated."
