@@ -21,7 +21,7 @@ EOF
 }
 
 function main {
-  if [ "$1" = "-h" -o "$1" = "--help" ]; then
+  if [ "$1" = "-h" -o "$1" = "--help" -o "$1" = "" ]; then
     print_help
     exit 0
   fi
