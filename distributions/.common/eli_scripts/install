@@ -39,6 +39,10 @@ function is_valid_device {
 is_valid_device "ELI_ROOTFS_DEVICE" "$ELI_ROOTFS_DEVICE"
 is_valid_device "ELI_BOOTLOADER_DEVICE" "$ELI_BOOTLOADER_DEVICE"
 
+log_info "executing pre-installation hooks..."
+( source /eli/scripts/run-pre-install-hooks )
+log_info "pre-installation hooks executed."
+
 log_info "preparing installation..."
 ( ELI_ROOTFS_DST="$ELI_ROOTFS_DEVICE" source /eli/scripts/mkrootfs )
 ( source /eli/scripts/mkinitramfs )
