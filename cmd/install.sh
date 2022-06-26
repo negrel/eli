@@ -74,7 +74,7 @@ function main {
       -o|--option)
         shift
         local key="$(cut -d '=' -f 1 <<< "ELI_$1" | tr 'a-z' 'A-Z' | tr -d '\n' | tr -c '[:alnum:]' '_')"
-        local value="$(cut -d '=' -f 2 <<< "$1")"
+        local value="$(cut -d '=' -f 2- <<< "$1")"
         options+=("$key=$value")
         shift
         ;;
