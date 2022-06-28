@@ -17,7 +17,7 @@ RUN pacman -Syu --needed --noconfirm --hookdir $(mktemp -d)\
   lvm2 \
   cryptsetup \
   efibootmgr \
-  patch \
+  fuse-overlayfs \
   && pacman -Scc
 
 RUN rm -rf /boot/grub*
@@ -30,6 +30,7 @@ RUN if [ "$ELI_AMD_UCODE" = "y" ]; then \
     pacman -S --needed --noconfirm amd-ucode; \
   fi
 
+# include "distributions/.common/Containerfile-fstab"
 # include "distributions/.common/Containerfile-keymap"
 # include "distributions/.common/Containerfile-timezone"
 # include "distributions/.common/Containerfile-root-passwd"
