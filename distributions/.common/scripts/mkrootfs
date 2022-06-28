@@ -12,8 +12,8 @@ fi
 : ${ELI_ROOTFS_DST:="/boot/squashfs.img"}
 : ${ELI_ROOTFS_OVERWRITE:="n"}
 
-if [ -e "$ELI_ROOTFS_DST"
-    -a "$(/eli/scripts/fstype $ELI_ROOTFS_DST)" = "ext3"
+if [ -e "$ELI_ROOTFS_DST" \
+    -a "$(/eli/scripts/fstype $ELI_ROOTFS_DST)" = "ext3" \
     -a "$ELI_ROOTFS_OVERWRITE" != "y" ]; then
   log_warn "rootfs image already exist, skipping generation."
   exit 0

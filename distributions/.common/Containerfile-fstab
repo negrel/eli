@@ -1,0 +1,5 @@
+ARG TMPFS_TMP_SIZE="100%"
+ARG TMPFS_RUN_SIZE="100%"
+
+RUN echo "tmpfs	/tmp	tmpfs	mode=1777,strictatime,nosuid,nodev,size=$TMPFS_TMP_SIZE,nr_inodes=1m	0	0" >> /etc/fstab
+RUN echo "tmpfs	/run	tmpfs	mode=755,nosuid,nodev,noexec,inode64,size=$TMPFS_RUN_SIZE	0	0" >> /etc/fstab
