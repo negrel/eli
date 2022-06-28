@@ -4,6 +4,7 @@
 
 Eli relies on the following commands:
 - `bash`: GNU Bourne Again SHell.
+- `jq`: Command-line JSON processor.
 - `buildah`: A tool that facilitates building OCI images.
 
 ### Kernel modules
