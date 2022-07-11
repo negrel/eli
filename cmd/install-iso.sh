@@ -18,18 +18,6 @@ OPTIONS:
 EOF
 }
 
-function generate_iso_at {  
-  local ctr="$1"
-  local dst="$2"
-  shift 2
-
-  log_info "generating ISO image at \"$dst\"..."
-  ctr_chroot $ctr \
-    $@ \
-    /eli/scripts/install-iso
-  log_info "ISO image successfully generated at \"$dst\"."
-}
-
 function main {
   local options=()
 
@@ -127,6 +115,16 @@ function main {
   touch $ctr_dir/eli/iso.iso
   mount --bind $dst $ctr_dir/eli/iso.iso
 
-  generate_iso_at $ctr $dst ${options[@]}
+  log_info "generating ISO image at \"$dst\"..."
+  ctr_chroot $ctr \
+    ${options[@]} \
+    /eli/scripts/install-iso \
+  || (
+    log_error "ISO image generation failed.";
+    destroy_ctr $ctr;
+    stacktrace=n exit 1;
+  )
+
+  log_info "ISO image successfully generated at \"$dst\"."
   destroy_ctr $ctr
 }

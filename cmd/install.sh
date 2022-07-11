@@ -23,23 +23,6 @@ OPTIONS:
 EOF
 }
 
-function install_at {
-  local ctr="$1"
-  local boot_dev="$2"
-  local rootfs_dev="$3"
-  shift 3
-
-  log_info "installing image..."
-
-  ctr_chroot $ctr \
-    ELI_ROOTFS_DEVICE="$rootfs_dev" \
-    ELI_BOOTLOADER_DEVICE="$boot_dev" \
-    $@ \
-    /eli/scripts/install
-
-  log_info "image successfully installed."
-}
-
 function main {
   local options=()
   
@@ -156,6 +139,18 @@ function main {
   local ctr_dir=${prep[1]}
   log_info "container \"$ctr\" based on image \"$img\" ready for installation."
 
-  install_at $ctr $boot_dev $rootfs_dev ${options[@]}
+  log_info "installing image..."
+  ctr_chroot $ctr \
+    ELI_ROOTFS_DEVICE="$rootfs_dev" \
+    ELI_BOOTLOADER_DEVICE="$boot_dev" \
+    ${options[@]} \
+    /eli/scripts/install \
+  || (
+    log_error "image installation failed.";
+    destroy_ctr $ctr;
+    stacktrace=n exit 1;
+  )
+
+  log_info "image successfully installed."
   destroy_ctr $ctr
 }
