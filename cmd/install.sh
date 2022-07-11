@@ -16,6 +16,7 @@ OPTIONS:
   -I, --no-initramfs-overwrite  prevent initramfs overwrite
   -h, --help                    print this menu
   -o, --option                  custom option that will be passed to the image install script
+  -O, --option-file             custom option file (default: .eli)
   -r, --rootfs-overwrite        overwrite the root filesystem device (default: true)
   -R, --no-rootfs-overwrite     prevent overwriting of the root filesystem partition
   --trace                       enable tracing
@@ -23,9 +24,16 @@ OPTIONS:
 EOF
 }
 
+function load_option_file {
+  options+=
+}
+
 function main {
   local options=()
-  
+  if [ -r ".eli" ]; then
+    parse_option_file ".eli"
+  fi
+
   while [ $# -gt 0 ]; do
     case $1 in
       -a|--arch)
@@ -56,12 +64,15 @@ function main {
 
       -o|--option)
         shift
-        local key="$(cut -d '=' -f 1 <<< "ELI_$1" | tr 'a-z' 'A-Z' | tr -d '\n' | tr -c '[:alnum:]' '_')"
-        local value="$(cut -d '=' -f 2- <<< "$1")"
-        options+=("$key=$value")
+        parse_option "$1"
         shift
         ;;
-
+      
+      -O|--option-file)
+        shift
+        parse_option_file "$1"
+        shift
+        ;;
 
       -r|--overwrite-rootfs)
         options+=("ELI_ROOTFS_OVERWRITE=y")

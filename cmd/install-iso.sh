@@ -10,9 +10,8 @@ USAGE:
 
 OPTIONS:
   -h, --help                   print this menu
-  -o, --option custom          option that will be passed to the image install script
-  -p, --persistent-partiton    add a persistent partiton to the destination if it's a block file (default: true)
-  -P, --no-persistent-partiton prevents the addition of a persistent partition
+  -o, --option                 custom option that will be passed to the image install script
+  -O, --option-file            custom option file (default: .eli)
   -v, --volume-id              custom volume id (default: image name)
 
 EOF
@@ -20,6 +19,9 @@ EOF
 
 function main {
   local options=()
+  if [ -r ".eli" ]; then
+    parse_option_file ".eli"
+  fi
 
   while [ $# -gt 0 ]; do
     case $1 in
@@ -30,19 +32,13 @@ function main {
 
       -o|--option)
         shift
-        local key="$(cut -d '=' -f 1 <<< "ELI_$1" | tr 'a-z' 'A-Z' | tr -d '\n' | tr -c '[:alnum:]' '_')"
-        local value="$(cut -d '=' -f 2- <<< "$1")"
-        options+=("$key=$value")
+        parse_option "$1"
         shift
         ;;
-
-      -p|--persistent-partition)
-        options+=("ELI_PERSISTENT_PART=y")
+      
+      -O|--option-file)
         shift
-        ;;
-
-      -P|--no-persistent-partition)
-        options+=("ELI_PERSISTENT_PART=n")
+        parse_option_file "$1"
         shift
         ;;
 
