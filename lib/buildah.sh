@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source "$SCRIPT_DIR/lib/run.sh"
+source "$SCRIPT_DIR/lib/log.sh"
 
 function buildah_from {
   local img="$1"

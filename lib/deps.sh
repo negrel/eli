@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 source "$SCRIPT_DIR/lib/log.sh"
-source "$SCRIPT_DIR/lib/run.sh"
 source "$SCRIPT_DIR/lib/buildah.sh"
 
 function are_dependencies_installed {

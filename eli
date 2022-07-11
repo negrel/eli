@@ -7,7 +7,6 @@ shopt -s inherit_errexit
 
 source "$SCRIPT_DIR/lib/log.sh"
 source "$SCRIPT_DIR/lib/traps.sh"
-source "$SCRIPT_DIR/lib/run.sh"
 source "$SCRIPT_DIR/lib/deps.sh"
 source "$SCRIPT_DIR/lib/buildah.sh"
 source "$SCRIPT_DIR/lib/install_utils.sh"
