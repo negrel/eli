@@ -77,11 +77,3 @@ function stacktrace {
     ((frame++))
   done
 }
-
-function stacktrace {
-  local frame=0 LINE SUB FILE
-  while read LINE SUB FILE < <(caller "$frame"); do
-    echo "$SUB" "$FILE" "$LINE" 1>&2
-    ((frame++))
-  done
-}
