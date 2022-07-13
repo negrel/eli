@@ -26,7 +26,7 @@ function parse_option_file {
   fi
 
   while IFS= read -r line; do
-    parse_option $line
+    IFS= parse_option "$line"
   done < "$1"
 
   log_info "option file \".eli\" successfully parsed."
