@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
+source /eli/lib/log.sh
+
+set -e
+
+if [ -n "$ELI_TRACE" ]; then
+  set -x
+fi
+
+: ${ELI_ROOT_PASSWD:=""}
+
+log_info "changing root password..."
+usermod -p "$ELI_ROOT_PASSWD" root
+log_info "root password changed."

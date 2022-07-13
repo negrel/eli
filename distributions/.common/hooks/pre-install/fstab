@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
+source /eli/lib/log.sh
+
+set -e
+
+if [ -n "$ELI_TRACE" ]; then
+  set -x
+fi
+
+if [ "$ELI_INSTALL_TYPE" = "iso" ]; then
+  log_info "skipping fstab extension file (ISO type installation)."
+  exit 0
+fi
+
+if [ -z "$ELI_FSTAB_EXT_FILE" ]; then
+  log_warn "no fstab extension file specified, skipping fstab extension."
+  exit 0
+fi
+
+if [ ! -r "$ELI_FSTAB_EXT_FILE" ]; then
+  log_error "can't read fstab extension file: \"$ELI_FSTAB_EXT_FILE\"."
+  stacktrace=n exit 1
+fi
+
+log_info "appending \"$ELI_FSTAB_EXT_FILE\" to fstab..."
+cat "$ELI_FSTAB_EXT_FILE" >> /etc/fstab
+log_info "\"$ELI_FSTAB_EXT_FILE\" successfully appended to fstab."

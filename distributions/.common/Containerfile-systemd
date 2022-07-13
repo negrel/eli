@@ -1,5 +1,0 @@
-ARG TMPFS_SIZE="100%"
-ARG SYSTEMD_TMP_MOUNT_FILEPATH="/usr/lib/systemd/system/tmp.mount"
-
-RUN TMPFS_SIZE=$(sed 's/%/%%/g' <<< "$TMPFS_SIZE"); \
-  sed -i -E "s/size=[^,]+/size=$TMPFS_SIZE/" $SYSTEMD_TMP_MOUNT_FILEPATH

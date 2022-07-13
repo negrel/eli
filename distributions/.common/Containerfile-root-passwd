@@ -1,4 +1,0 @@
-ARG ROOT_PASSWD=""
-
-# Remove root password
-RUN usermod -p "$ROOT_PASSWD" root

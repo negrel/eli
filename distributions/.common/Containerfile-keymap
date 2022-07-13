@@ -1,4 +1,0 @@
-ARG KEYMAP=fr
-
-# Keyboard layout
-RUN echo "KEYMAP=$KEYMAP" > /etc/vconsole.conf

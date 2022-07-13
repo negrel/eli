@@ -10,12 +10,12 @@ if [ -n "$ELI_TRACE" ]; then
 fi
 
 if [ "$ELI_INSTALL_TYPE" = "iso" ]; then
-  log_info "skipping swap entry in fstab (ISO install type)".
+  log_info "skipping swap entry in fstab (ISO type installation)."
   exit 0
 fi
 
 if [ -z "$ELI_SWAP_DEVICE" ]; then
-  log_warn "no swap id specified, skipping swap device preparation"
+  log_warn "no swap id specified, skipping swap device preparation."
   exit 0
 fi
 
