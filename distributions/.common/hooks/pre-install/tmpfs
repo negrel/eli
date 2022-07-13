@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
+source /eli/lib/log.sh
+
+set -e
+
+if [ -n "$ELI_TRACE" ]; then
+  set -x
+fi
+
+: ${ELI_TMPFS_TMP_SIZE:="100%"}
+: ${ELI_TMPFS_RUN_SIZE:="100%"}
+
+if [ -n "$ELI_TMPFS_TMP_SIZE" ]; then
+  log_info "adding /tmp entry to fstab..."
+  echo "tmpfs	/tmp	tmpfs	mode=1777,strictatime,nosuid,nodev,size=$ELI_TMPFS_TMP_SIZE,nr_inodes=1m	0	0" >> /etc/fstab
+  log_info "/tmp entry successfully added to fstab."
+fi
+
+if [ -n "$ELI_TMPFS_RUN_SIZE" ]; then
+  log_info "adding /run entry to fstab..."
+  echo "tmpfs	/run	tmpfs	mode=755,nosuid,nodev,noexec,inode64,size=$ELI_TMPFS_RUN_SIZE	0	0" >> /etc/fstab
+  log_info "/run entry successfully added to fstab."
+fi
