@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
+source /eli/lib/log.sh
+
+set -e
+
+if [ -n "$ELI_TRACE" ]; then
+  set -x
+fi
+
+if [ "$ELI_INSTALL_TYPE" = "iso" ]; then
+  log_info "skipping micro code installation (ISO type installation)."
+  exit 0
+fi
+
+
+: ${ELI_INTEL_UCODE:="n"}
+: ${ELI_AMD_UCODE:="n"}
+
+
+# Microcode
+if [ "$ELI_INTEL_UCODE" = "y" ]; then \
+  log_info "installing intel micro code..."
+  pacman -S --needed --noconfirm intel-ucode; \
+  log_info "intel micro code successfully installed."
+fi
+if [ "$ELI_AMD_UCODE" = "y" ]; then \
+  log_info "installing amd micro code..."
+  pacman -S --needed --noconfirm amd-ucode; \
+  log_info "amd micro code successfully installed."
+fi

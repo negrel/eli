@@ -1,12 +1,9 @@
 FROM docker.io/library/archlinux:latest
 
-ARG ELI_INTEL_UCODE=y
-ARG ELI_AMD_UCODE=y
-
 ARG ELI_DISTRIB=archlinux
 
 # Install packages required for an install
-RUN pacman -Syu --needed --noconfirm --hookdir $(mktemp -d)\
+RUN pacman -Syu --needed --noconfirm --hookdir $(mktemp -d) \
   dracut \
   squashfs-tools \
   grub \
@@ -22,18 +19,8 @@ RUN pacman -Syu --needed --noconfirm --hookdir $(mktemp -d)\
 
 RUN rm -rf /boot/grub*
 
-# Microcode
-RUN if [ "$ELI_INTEL_UCODE" = "y" ]; then \
-    pacman -S --needed --noconfirm intel-ucode; \
-  fi
-RUN if [ "$ELI_AMD_UCODE" = "y" ]; then \
-    pacman -S --needed --noconfirm amd-ucode; \
-  fi
+COPY --chmod=755 $ELI_DISTRIB/hooks/pre-install/ucode /eli/hooks/pre-install/ucode
 
-# include "distributions/.common/Containerfile-fstab"
-# include "distributions/.common/Containerfile-keymap"
-# include "distributions/.common/Containerfile-timezone"
-# include "distributions/.common/Containerfile-root-passwd"
 # include "distributions/.common/Containerfile-grub"
 # include "distributions/.common/Containerfile-dracut"
 # include "distributions/.common/Containerfile-common"
