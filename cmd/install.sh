@@ -24,10 +24,6 @@ OPTIONS:
 EOF
 }
 
-function load_option_file {
-  options+=
-}
-
 function main {
   local options=()
   if [ -r ".eli" ]; then
