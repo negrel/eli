@@ -5,6 +5,8 @@ source /eli/lib/log.sh
 
 set -e
 
+trap exit_trap EXIT
+
 if [ -n "$ELI_TRACE" ]; then
   set -x
 fi

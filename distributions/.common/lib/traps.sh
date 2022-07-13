@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+: ${SCRIPT_DIR=$(dirname $(dirname $(readlink -f "${BASH_SOURCE[0]}")))}
+
 source "$SCRIPT_DIR/lib/log.sh"
 
 function exit_trap {
