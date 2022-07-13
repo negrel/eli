@@ -22,7 +22,7 @@ function parse_option_file {
 
   if [ ! -r "$1" ]; then
     log_error "can't read option file: \"$1\""
-    stacktrace=n exit 1
+    clean_exit 1
   fi
 
   while IFS= read -r line; do

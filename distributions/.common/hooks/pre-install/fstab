@@ -2,6 +2,7 @@
 
 ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
 source /eli/lib/log.sh
+source /eli/lib/traps.sh
 
 set -e
 
@@ -21,7 +22,7 @@ fi
 
 if [ ! -r "$ELI_FSTAB_EXT_FILE" ]; then
   log_error "can't read fstab extension file: \"$ELI_FSTAB_EXT_FILE\"."
-  stacktrace=n exit 1
+  clean_exit 1
 fi
 
 log_info "appending \"$ELI_FSTAB_EXT_FILE\" to fstab..."

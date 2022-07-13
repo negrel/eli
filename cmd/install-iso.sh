@@ -56,7 +56,7 @@ function main {
       -*|--*)
         log_error "unknown option: $1"
         log_error "run \"$cmdname install-iso --help\" to see the list of availables options."
-        stacktrace=n exit 1
+        clean_exit 1
         ;;
       
       *)
@@ -69,14 +69,14 @@ function main {
   local img=$1
   if [ -z "$img" ]; then
     log_error "missing IMG option."
-    stacktrace=n exit 1
+    clean_exit 1
   fi
 
   # ISO destination
   local dst=$2
   if [ -z "$dst" ]; then
     log_error "missing DST option."
-    stacktrace=n exit 1
+    clean_exit 1
   fi
 
   if [ ! -e "$dst" ]; then
@@ -87,18 +87,18 @@ function main {
 
   if [ ! -w "$dst" ]; then
     log_error "can't write to destination file: \"$dst\""
-    stacktrace=n exit 1
+    clean_exit 1
   fi
 
   if [ -d "$dst" ]; then
     log_error "\"$dst\" is a directory."
-    stacktrace=n exit 1
+    clean_exit 1
   fi
   shift 2
 
   if [ $# -gt 0 ]; then
     log_error "unexpected option(s): $@"
-    stacktrace=n exit 1
+    clean_exit 1
   fi
 
   log_info "preparing container for image \"$img\"..."
@@ -118,7 +118,7 @@ function main {
   || (
     log_error "ISO image generation failed.";
     destroy_ctr $ctr;
-    stacktrace=n exit 1;
+    clean_exit 1
   )
 
   log_info "ISO image successfully generated at \"$dst\"."

@@ -93,7 +93,7 @@ function main {
       -*|--*)
         log_error "unknown option: $1"
         log_error "run \"$cmdname install --help\" to see the list of availables options."
-        stacktrace=n exit 1
+        clean_exit 1
         ;;
       
       *)
@@ -106,19 +106,19 @@ function main {
   local img="$1"
   if [ -z "$img" ]; then
     log_error "missing IMG option."
-    stacktrace=n exit 1
+    clean_exit 1
   fi
 
   # Boot device
   local boot_dev="$2"
   if [ -z "$boot_dev" ]; then
     log_error "missing BOOT_DEVICE option."
-    stacktrace=n exit 1
+    clean_exit 1
   fi
 
   if [ ! -w "$boot_dev" ]; then
     log_error "can't write to boot device: \"$boot_dev\""
-    stacktrace=n exit 1
+    clean_exit 1
   fi
 
   # Root filesystem device
@@ -126,18 +126,18 @@ function main {
 
   if [ -z "$rootfs_dev" ]; then
     log_error "missing ROOTFS_DEVICE option."
-    stacktrace=n exit 1
+    clean_exit 1
   fi
 
   if [ ! -w "$rootfs_dev" ]; then
     log_error "can't write to rootfs device: \"$rootfs_dev\""
-    stacktrace=n exit 1
+    clean_exit 1
   fi
   shift 3
 
   if [ $# -gt 0 ]; then
     log_error "unexpected option(s): $@"
-    stacktrace=n exit 1
+    clean_exit 1
   fi
 
   log_info "preparing container to install image \"$img\"..."
@@ -155,7 +155,7 @@ function main {
   || (
     log_error "image installation failed.";
     destroy_ctr $ctr;
-    stacktrace=n exit 1;
+    clean_exit 1
   )
 
   log_info "image successfully installed."
