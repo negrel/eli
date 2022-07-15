@@ -2,6 +2,7 @@
 
 ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
 source /eli/lib/log.sh
+source /eli/lib/traps.sh
 
 set -e
 
@@ -14,6 +15,8 @@ fi
 # Public variables
 : ${ELI_IMAGE:="Eli Linux"}
 : ${ELI_VOLUME_ID:="$(tr -c '[:alnum:]' '_' <<< "$ELI_IMAGE" | tr 'a-z' 'A-Z')"}
+
+: ${ELI_INSTALL_TYPE="iso"}
 
 ISO_DST="/eli/iso.iso"
 ISO_DIR="/eli/isodir"
