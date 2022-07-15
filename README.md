@@ -33,3 +33,11 @@ $ git pull origin master
 ## Known limitations
 
 - File size can't exceed your tmpfs size
+
+## :stars: Show your support
+
+Please give a :star: if this project helped you!
+
+## :scroll: License
+
+MIT © [Alexandre Negrel](https://www.negrel.dev/)
