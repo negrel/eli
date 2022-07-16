@@ -14,19 +14,14 @@ if [ "$ELI_INSTALL_TYPE" = "iso" ]; then
   exit 0
 fi
 
-
-: ${ELI_INTEL_UCODE:="n"}
-: ${ELI_AMD_UCODE:="n"}
-
-
 # Microcode
-if [ "$ELI_INTEL_UCODE" = "y" ]; then \
-  log_info "installing intel micro code..."
-  pacman -S --needed --noconfirm intel-ucode; \
-  log_info "intel micro code successfully installed."
+if [ "$ELI_INTEL_UCODE" != "y" ]; then \
+  log_info "removing intel micro code..."
+  pacman -Rsn intel-ucode; \
+  log_info "intel micro code successfully removed."
 fi
-if [ "$ELI_AMD_UCODE" = "y" ]; then \
-  log_info "installing amd micro code..."
-  pacman -S --needed --noconfirm amd-ucode; \
-  log_info "amd micro code successfully installed."
+if [ "$ELI_AMD_UCODE" != "y" ]; then \
+  log_info "removing amd micro code..."
+  pacman -Rsn amd-ucode; \
+  log_info "amd micro code successfully removed."
 fi
