@@ -16,8 +16,6 @@ fi
 : ${ELI_IMAGE:="Eli Linux"}
 : ${ELI_VOLUME_ID:="$(tr -c '[:alnum:]' '_' <<< "$ELI_IMAGE" | tr 'a-z' 'A-Z')"}
 
-: ${ELI_INSTALL_TYPE="iso"}
-
 ISO_DST="/eli/iso.iso"
 ISO_DIR="/eli/isodir"
 ISO_BOOT_DIR="$ISO_DIR/boot"

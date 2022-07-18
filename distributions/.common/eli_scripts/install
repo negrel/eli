@@ -18,8 +18,6 @@ fi
 : ${ELI_BOOTLOADER_ARCH:="x86_64-efi"}
 : ${ELI_BOOTLOADER_ID:="$(sed -E 's/[^a-zA-Z0-9]/_/' <<< "$ELI_IMAGE" | tr 'a-z' 'A-Z')"}
 
-: ${ELI_INSTALL_TYPE:=""}
-
 BOOT_DIR="/boot"
 BOOT_GRUB_DIR="$BOOT_DIR/grub"
 

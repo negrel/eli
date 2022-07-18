@@ -115,5 +115,5 @@ function ctr_chroot {
   local ctr_env=($(image_env $1))
   shift
 
-  chroot $ctr_mnt /bin/sh -e -c "${ctr_env[*]}; $*"
+  chroot $ctr_mnt /bin/sh -e -c "${ctr_env[*]} $*"
 }

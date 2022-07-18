@@ -150,6 +150,7 @@ function main {
   ctr_chroot $ctr \
     ELI_ROOTFS_DEVICE="$rootfs_dev" \
     ELI_BOOTLOADER_DEVICE="$boot_dev" \
+    ELI_INSTALL_TYPE="" \
     ${options[@]} \
     /eli/scripts/install \
   || (
