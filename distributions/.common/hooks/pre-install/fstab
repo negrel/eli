@@ -11,7 +11,7 @@ if [ -n "$ELI_TRACE" ]; then
 fi
 
 if [ "$ELI_INSTALL_TYPE" = "iso" ]; then
-  log_info "skipping fstab extension file (ISO type installation)."
+  log_warn "skipping fstab extension file (ISO type installation)."
   exit 0
 fi
 
