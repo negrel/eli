@@ -6,4 +6,5 @@ if [ -n "$ELI_TRACE" ]; then
   set -x
 fi
 
-blkid -s TYPE -o value $@ | tr '\n' ' '
+# xargs trim whitespaces
+blkid -s TYPE -o value $@ | tr '\n' ' ' | xargs
