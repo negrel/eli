@@ -10,18 +10,18 @@ if [ -n "$ELI_TRACE" ]; then
 fi
 
 if [ "$ELI_INSTALL_TYPE" = "iso" ]; then
-  log_info "skipping micro code installation (ISO type installation)."
+  log_info "skipping micro code removal (ISO type installation)."
   exit 0
 fi
 
 # Microcode
-if [ "$ELI_INTEL_UCODE" != "y" ]; then \
+if [ "$ELI_INTEL_UCODE" != "y" ]; then
   log_info "removing intel micro code..."
-  pacman -Rsn intel-ucode; \
+  pacman -Rsn --noconfirm intel-ucode
   log_info "intel micro code successfully removed."
 fi
-if [ "$ELI_AMD_UCODE" != "y" ]; then \
+if [ "$ELI_AMD_UCODE" != "y" ]; then
   log_info "removing amd micro code..."
-  pacman -Rsn amd-ucode; \
+  pacman -Rsn --noconfirm amd-ucode
   log_info "amd micro code successfully removed."
 fi
