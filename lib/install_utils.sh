@@ -92,7 +92,7 @@ function add_image_env {
   local ctr="$2"
   local ctr_dir="$3"
 
-  log_info "adding \"$img\" image environment variable to installation..."
+  log_info "adding \"$img\" image environment variables to installation..."
 
   for envvar in $(image_env $1); do
     local env="$(_unquote_string $envvar)"
@@ -107,7 +107,7 @@ function add_image_env {
 
     log_debug "\"$env\" environment variable added."
   done
-  log_info "\"$1\" image environment variable added."
+  log_info "\"$1\" image environment variables added."
 }
 
 function ctr_chroot {
