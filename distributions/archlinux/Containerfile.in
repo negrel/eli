@@ -23,9 +23,9 @@ RUN rm -rf /boot/grub*
 
 COPY --chmod=755 $ELI_DISTRIB/hooks/pre-install/ucode /eli/hooks/pre-install/ucode
 
-# include "distributions/.common/Containerfile-grub"
-# include "distributions/.common/Containerfile-dracut"
-# include "distributions/.common/Containerfile-common"
+# include "distributions/.grub/Containerfile"
+# include "distributions/.dracut/Containerfile"
+# include "distributions/.common/Containerfile"
 
 # Remove NoExtract from pacman conf
 RUN sed -i -E 's|^NoExtract\s+=\s+.*$||' /etc/pacman.conf
