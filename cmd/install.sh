@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-
 function print_help {
   cat <<EOF
 $cmdname install - install OCI/Docker image on disk.
@@ -10,7 +8,6 @@ USAGE:
   $cmdname install -a i386-pc -o bootloader-overwrite=y --option custom-option=value -- eli/archlinux /dev/sda1 /dev/sda2
 
 OPTIONS:
-  -a, --arch                    bootloader target architecture to use for installation (default: x86_64-efi)
   --debug                       enable debug logs
   -i, --initramfs-overwrite     overwrite initramfs if one is already present in the image
   -I, --no-initramfs-overwrite  prevent initramfs overwrite
@@ -32,12 +29,6 @@ function main {
 
   while [ $# -gt 0 ]; do
     case $1 in
-      -a|--arch)
-        shift
-        options+=("ELI_ARCH=$1")
-        shift
-        ;;
-
       -i|--initramfs-overwrite)
         options+=("ELI_INITRAMFS_OVERWRITE=y")
         shift

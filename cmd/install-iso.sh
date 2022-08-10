@@ -5,8 +5,8 @@ function print_help {
 $cmdname install-iso - install/generate an ISO from an OCI/Docker image.
 
 USAGE:
-  $cmdname  -- eli/archlinux /dev/sda
-  $cmdname  -- eli/archlinux /home/$USER/image.iso
+  $cmdname install-iso eli/archlinux /dev/sda
+  $cmdname install-iso eli/archlinux /home/$USER/image.iso
 
 OPTIONS:
   -h, --help                   print this menu
