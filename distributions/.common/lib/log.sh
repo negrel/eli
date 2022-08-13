@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 : ${ELI_LOG_PREFIX:="ELI"}
+: ${ELI_TRACE:=""}
+: ${ELI_DEBUG:=""}
 
 declare -A log_colors
 log_colors[white]="30"

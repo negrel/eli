@@ -3,7 +3,8 @@
 ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
 source /eli/lib/log.sh
 
-set -e
+set -euo pipefail
+shopt -s inherit_errexit
 
 if [ -n "$ELI_TRACE" ]; then
   set -x
