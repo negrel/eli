@@ -32,3 +32,5 @@ RUN sed -i -E 's|^NoExtract\s+=\s+.*$||' /etc/pacman.conf
 
 # Link kernel to /boot/vmlinuz-*
 RUN ln /usr/lib/modules/$(/eli/scripts/kver)/vmlinuz /boot/vmlinuz-$(/eli/scripts/kver)
+
+ENTRYPOINT ["/usr/lib/systemd/systemd"]
