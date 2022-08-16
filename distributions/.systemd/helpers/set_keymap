@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+shopt -s inherit_errexit
+
+echo "KEYMAP=$1" > /etc/vconsole.conf

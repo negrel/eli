@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+shopt -s inherit_errexit
+
+envfile="/etc/environment.d/99-eli.conf"
+if [ ! -d "/etc/environment.d" ]; then
+  envfile="/etc/environment"
+fi
+
+echo "$*" >> "$envfile"

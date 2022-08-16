@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+shopt -s inherit_errexit
+
+# $1 define the swap device
+echo "$1	none	swap	sw	0	0" >> /etc/fstab

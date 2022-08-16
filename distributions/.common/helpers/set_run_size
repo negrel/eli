@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+shopt -s inherit_errexit
+
+# $1 define the size of /run tmpfs.
+# $1 may have a k, m or g suffix for Ki, Mi, Gi.
+# $1 may also have a % suffix to limit this instance
+# to a percentage of physical RAM.
+echo "tmpfs	/run	tmpfs	mode=755,nosuid,nodev,noexec,inode64,size=$1	0	0" >> /etc/fstab

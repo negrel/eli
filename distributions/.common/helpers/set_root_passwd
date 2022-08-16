@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+shopt -s inherit_errexit
+
+# $1 define the hashed root password as in /etc/shadow
+# Update root password
+usermod -p "$1" root

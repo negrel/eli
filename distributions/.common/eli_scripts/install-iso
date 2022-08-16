@@ -56,10 +56,6 @@ function generate_iso {
     -volid "$ELI_VOLUME_ID"
 }
 
-log_info "executing pre-installation hooks..."
-( source /eli/scripts/run-pre-install-hooks )
-log_info "pre-installation hooks executed."
-
 log_info "preparing installation..."
 ( source /eli/scripts/mksquashfs )
 ( source /eli/scripts/mkinitramfs )

@@ -19,12 +19,15 @@ RUN pacman -Syu --needed --noconfirm --hookdir $(mktemp -d) \
   amd-ucode \
   && pacman -Scc
 
+# Clean /boot directory
 RUN rm -rf /boot/grub*
 
-COPY --chmod=755 $ELI_DISTRIB/hooks/pre-install/ucode /eli/hooks/pre-install/ucode
+# Remove root password
+RUN passwd -d root
 
 # include "distributions/.grub/Containerfile"
 # include "distributions/.dracut/Containerfile"
+# include "distributions/.systemd/Containerfile"
 # include "distributions/.common/Containerfile"
 
 # Remove NoExtract from pacman conf
@@ -33,4 +36,5 @@ RUN sed -i -E 's|^NoExtract\s+=\s+.*$||' /etc/pacman.conf
 # Link kernel to /boot/vmlinuz-*
 RUN ln /usr/lib/modules/$(/eli/scripts/kver)/vmlinuz /boot/vmlinuz-$(/eli/scripts/kver)
 
+# Sets systemd as entrypoint so podman starts containers as system container
 ENTRYPOINT ["/usr/lib/systemd/systemd"]

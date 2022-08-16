@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+shopt -s inherit_errexit
+
+ln -sf "/usr/share/zoneinfo/$1" /etc/localtime

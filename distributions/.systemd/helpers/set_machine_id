@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+shopt -s inherit_errexit
+
+while [ $# -gt 0 ]; do
+  case $1 in
+    random)
+      /usr/bin/systemd-machine-id-setup
+      exit 0
+      ;;
+
+    custom)
+      shift
+      echo "$1" > /etc/machine-id
+
+      exit 0
+      ;;
+
+    *)
+      echo "unknown option $1" >&2
+      exit 1
+      ;;
+  esac
+done
+
+echo "you must specify an option" >&2
+exit 1

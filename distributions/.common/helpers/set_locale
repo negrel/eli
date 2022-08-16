@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+shopt -s inherit_errexit
+
+# $1 define the locale
+# /etc/locale.gen contains the list of availables locales
+sed -i -E "s/#$1/$1/" /etc/locale.gen
+locale > /etc/locale.conf

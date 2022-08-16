@@ -26,9 +26,3 @@ The script **MAY** support the following environment variable:
 | Environment variable name | Description |
 |:------------------------- | :---------- |
 | `ELI_VOLUME_ID` | ISO volume ID |
-| `ELI_PERSISTENT_PART` | Add a persistent partition to the ISO if it's a block device. |
-
-## `set_env`
-
-This script is used to set environment variable present in the image globally.
-Exactly one environment variable is passed as argument to this script.
