@@ -101,11 +101,10 @@ function main {
     clean_exit 1
   fi
 
-  log_info "preparing container for image \"$img\"..."
-  local prep=($(prepare_ctr_from $img))
-  local ctr=${prep[0]}
-  local ctr_dir=${prep[1]}
-  log_info "container \"$ctr\" based on image \"$img\" ready for install."
+  log_info "setting up container to install image \"$img\"..."
+  local ctr="$(setup_ctr $img)"
+  local ctr_dir=$(buildah_mount $ctr)
+  log_info "container \"$ctr\" based on image \"$img\" ready for installation."
 
   # Mount destination file
   touch $ctr_dir/eli/iso.iso

@@ -131,10 +131,8 @@ function main {
     clean_exit 1
   fi
 
-  log_info "preparing container to install image \"$img\"..."
-  local prep=($(prepare_ctr_from $img))
-  local ctr=${prep[0]}
-  local ctr_dir=${prep[1]}
+  log_info "setting up container to install image \"$img\"..."
+  local ctr="$(setup_ctr $img)"
   log_info "container \"$ctr\" based on image \"$img\" ready for installation."
 
   log_info "installing image..."

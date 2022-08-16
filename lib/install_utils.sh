@@ -3,39 +3,59 @@
 source "$SCRIPT_DIR/lib/log.sh"
 source "$SCRIPT_DIR/lib/buildah.sh"
 
-function prepare_ctr_from {
-  log_info "creating container from image \"$1\"..."
+function create_ctr {
+  log_debug "creating container from image \"$1\"..."
   local ctr=$(buildah_from $1)
-  log_info "container \"$ctr\" created from image \"$1\"."
+  log_debug "container \"$ctr\" created from image \"$1\"."
 
-  log_info "mounting container \"$ctr\" on host..."
-  mnt_dir=$(buildah_mount $ctr)
-  log_info "container \"$ctr\" mounted on host."
+  echo $ctr
+}
 
-  log_info "preparing container \"$ctr\"..."
+function remove_ctr {
+  log_debug "removing container \"$1\"..."
+  buildah_rm $1
+  log_debug "container \"$1\" removed."
+}
+
+function prepare_ctr {
+  local ctr="$1"
+
+  log_debug "mounting container \"$ctr\" on host..."
+  local mnt_dir=$(buildah_mount $ctr)
+  log_debug "container \"$ctr\" mounted on host."
 
   # Mounting /proc /dev /sys and /run
-  log_info "mounting \"/dev\" \"/proc\" \"/sys\" \"/run\" directories..."
-  for d in dev proc sys run; do
-    log_debug "mounting \"$d\" in container..."
-    mount --rbind /$d "$mnt_dir/$d"
-    mount --make-rslave "$mnt_dir/$d"
-    log_debug "\"$d\" mounted."
-  done
-  log_info "directories \"/dev\" \"/proc\" \"/sys\" \"/run\" mounted."
+  log_debug "mounting \"/dev\" \"/proc\" \"/sys\" \"/run\" directories..."
+  mount --rbind /dev $mnt_dir/dev && mount --make-rslave $mnt_dir/dev
+  mount --rbind -o ro /proc $mnt_dir/proc && mount --make-rslave $mnt_dir/proc
+  mount --rbind -o ro /sys $mnt_dir/sys && mount --make-rslave $mnt_dir/sys
+  mount --rbind /run $mnt_dir/run && mount --make-rslave $mnt_dir/run
+  log_debug "directories \"/dev\" \"/proc\" \"/sys\" \"/run\" mounted."
+}
 
-  local eli_image="${ELI_IMAGE:-$1}"
-  buildah config --env ELI_IMAGE="$eli_image" $ctr
-  add_image_env $1 $ctr $mnt_dir
-  log_info "container \"$ctr\" ready."
+function unprepare_ctr {
+  local ctr="$1"
+  local mnt_dir=$(buildah_mount $ctr)
 
-  echo $ctr $mnt_dir
+  log_debug "unmounting \"/dev\" \"/proc\" \"/sys\" \"/run\" directories..."
+  umount -l $mnt_dir/dev $mnt_dir/proc $mnt_dir/sys $mnt_dir/run
+  log_debug "directories \"/dev\" \"/proc\" \"/sys\" \"/run\" unmounted."
+
+  log_debug "unmounting \"$ctr\"..."
+  buildah_umount $ctr
+  log_debug "\"$ctr\" unmounted."
+}
+
+function setup_ctr {
+  local ctr=$(create_ctr $1)
+  prepare_ctr $ctr
+  
+  echo $ctr
 }
 
 function destroy_ctr {
-  log_info "removing container \"$1\"..."
-  buildah_rm $1 2> >(log_pipe "[BUILDAH] %s")
-  log_info "container $1 removed."
+  unprepare_ctr $1 || true
+  remove_ctr $1
 }
 
 function ctr_chroot {
