@@ -9,6 +9,7 @@ USAGE:
   $cmdname install-iso eli/archlinux /home/$USER/image.iso
 
 OPTIONS:
+  --debug                      enable debug logs
   -h, --help                   print this menu
   -o, --option                 custom option that will be passed to the image install script
   -O, --option-file            custom option file (default: .eli)
@@ -28,6 +29,12 @@ function main {
       -h|--help)
         print_help
         exit 0
+        ;;
+
+      --debug)
+        ELI_DEBUG=y
+        shift
+        options+=("ELI_DEBUG=y")
         ;;
 
       -o|--option)

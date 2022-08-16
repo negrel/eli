@@ -40,6 +40,7 @@ function main {
         ;;
 
       --debug)
+        ELI_DEBUG=y
         shift
         options+=("ELI_DEBUG=y")
         ;;
