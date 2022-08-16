@@ -8,8 +8,9 @@ function buildah_from {
   if [ -z "$img" ]; then
     log_fatal "missing IMG argument."
   fi
+  shift
 
-  run buildah from $img
+  run buildah from $@ $img
 }
 
 function buildah_rm {
@@ -18,8 +19,20 @@ function buildah_rm {
   if [ -z "$ctr" ]; then
     log_fatal "missing CTR argument"
   fi
+  shift
 
-  run buildah rm $ctr
+  run buildah rm $@ $ctr
+}
+
+function buildah_rmi {
+  local img="$1"
+
+  if [ -z "$img" ]; then
+    log_fatal "missing IMG argument"
+  fi
+  shift
+
+  run buildah rmi $@ $img
 }
 
 function buildah_run {
@@ -48,7 +61,17 @@ function buildah_mount {
   shift
 
 
-  run buildah mount $ctr
+  run buildah mount $@ $ctr
+}
+
+function buildah_umount {
+  local ctr="$1"
+  if [ -z "$ctr" ]; then
+    log_fatal "missing CTR argument"
+  fi
+  shift
+
+  run buildah umount $@ $ctr
 }
 
 function buildah_inspect {
@@ -75,5 +98,5 @@ function buildah_commit {
   fi
   shift 2
   
-  run buildah commit $@ $ctr $img
+  buildah commit $@ $ctr $img
 }
