@@ -15,7 +15,7 @@ fi
 
 # Public variables
 : ${ELI_IMAGE:="Eli Linux"}
-: ${ELI_VOLUME_ID:="$(tr -c '[:alnum:]' '_' <<< "$ELI_IMAGE" | tr 'a-z' 'A-Z')"}
+: ${ELI_VOLUME_ID:="$(tr -d '[:cntrl:]' <<< "$ELI_IMAGE" | tr -c '[:alnum:]' '_' | tr 'a-z' 'A-Z')"}
 
 ISO_DST="/eli/iso.iso"
 ISO_DIR="/eli/isodir"
