@@ -1,12 +1,16 @@
-# `eli` - Bootable, immutable OCI/Docker images on bare metal.
+# `eli` - Bootable OCI/Docker images on bare metal.
 
-Your Linux installation as a bootable, immutable OCI/Docker image, bare metal.
+Make ISO files from OCI/Docker images.
 
 ## Docs
 
 Documentation is available under [`./docs`](./docs/README.md).
 
-## Installation
+## Getting started
+
+First, you must install `eli` and its dependencies.
+
+## Installing
 
 To install `eli`, just clone the repository and create a symlink:
 
@@ -17,12 +21,12 @@ $ git clone https://github.com/negrel/eli.git
 ln -s `pwd`/eli/eli /usr/local/bin/eli
 ```
 
-You must also install the following dependencies:
+You must also have the following binaries:
 
+- `bash`: GNU Bourne-Again SHell
 - `buildah`: A command line tool that facilitates building OCI container images.
-- `jq`: Command-line JSON processor
-
-## Getting started
+- the coreutils
+- `chroot`: change root directory
 
 The first thing to do is to build an installable image. You can choose any one
 from this [list](#supported-images).
@@ -34,15 +38,14 @@ For this example, we will use the `archlinux` image.
 $ sudo make build/archlinux
 buildah bud \
         --layers -t eli/archlinux \
-        -f distributions/archlinux/Containerfile.in distributions/
+        -f archlinux/Containerfile.in distributions/
+STEP 1/20: FROM docker.io/library/archlinux:latest
+STEP 2/20: ARG ELI_DISTRIB=archlinux
 ...
 ```
 
-Once the image is built, we can start an installation. Currently, two
-installation modes are available:
-
-- `iso`: Produce an ISO image out of the OCI/Docker image
-- `regular`: A regular installation with a boot and a root partition.
+Once the image is built, we can start an installation. You can either choose to produce an ISO file out of the image or
+perform a regular installation with a boot and a root partition.
 
 For this example, we will produce an ISO image.
 
@@ -65,15 +68,6 @@ That's it ! You successfully produced your first ISO from an OCI/Docker image.
 Currently, the following images are availables:
 
 - `archlinux`
-
-## Known limitations
-
-### File size
-
-Size of a single file can't exceed your physical RAM. This is a limitation of
-`tmpfs` that is used as the upper layer of an `overlayfs`.
-
-Nevertheless, you can have large file on other filesystems.
 
 ## Contributing
 
