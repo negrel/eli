@@ -2,8 +2,6 @@
 
 This directory contains documentation about `eli` images & cli.
 
-## Images documentation
+## Contributor guide
 
-The documentation of each images lives next to their `Containerfile.in`:
-
-- [`eli/archlinux`](../distributions/archlinux/)
+Please see [`./contributor/README.md`](./contributor/README.md)
