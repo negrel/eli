@@ -1,0 +1,3 @@
+[submodule "distributions/.common/lib/log4bash"]
+	path = distributions/.common/lib/log4bash
+	url = https://github.com/negrel/log4bash.git

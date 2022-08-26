@@ -6,19 +6,16 @@ source "$SCRIPT_DIR/lib/log.sh"
 
 function exit_trap {
   local exit_code="$?"
-  local stacktrace=${stacktrace:="y"}
 
-  if [ "$exit_code" != "0" ] && [ "$stacktrace" = "y" ]; then
+  # Non zero exit code
+  # log level is debug or greater
+  if [ "$exit_code" != "0" ] \
+    && [ ${_log_level[$LOG_LEVEL]} -ge ${_log_level["debug"]} ]; then
     log_error "exit code $exit_code trapped, stacktrace:"
-    stacktrace
+    _stacktrace
   fi
 
-  local log="log_info"
-  if [ "$exit_code" != "0" ]; then
-    local log="log_error"
-  fi
-
-  "$log" "exit with status code of $exit_code"
+  log_info "exit with status code of $exit_code"
   exit $exit_code
 }
 

@@ -43,6 +43,7 @@ function main {
         ELI_DEBUG=y
         shift
         options+=("ELI_DEBUG=y")
+        options+=("LOG_LEVEL=debug")
         ;;
 
       -h|--help)
@@ -75,6 +76,7 @@ function main {
       --trace)
         shift
         options+=("ELI_TRACE=y")
+        options+=("LOG_LEVEL=trace")
         ;;
 
       --)
