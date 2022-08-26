@@ -1,9 +1,7 @@
 # /eli directory structure
 RUN mkdir -p \
   /eli \
-  /eli/scripts
+  /eli/bin
 
-COPY ./.common/eli_scripts/ /eli/scripts/
-COPY ./.common/scripts/ /eli/scripts/
+COPY ./.common/bin/ /eli/bin/
 COPY ./.common/lib/ /eli/lib/
-COPY ./.common/helpers/ /eli/scripts/

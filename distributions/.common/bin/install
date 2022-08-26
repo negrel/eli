@@ -43,8 +43,8 @@ is_valid_device "ELI_ROOTFS_DEVICE" "$ELI_ROOTFS_DEVICE"
 is_valid_device "ELI_BOOTLOADER_DEVICE" "$ELI_BOOTLOADER_DEVICE"
 
 log_info "preparing installation..."
-( ELI_ROOTFS_DST="$ELI_ROOTFS_DEVICE" source /eli/scripts/mkrootfs )
-( source /eli/scripts/mkinitramfs )
+( ELI_ROOTFS_DST="$ELI_ROOTFS_DEVICE" source /eli/bin/mkrootfs )
+( source /eli/bin/mkinitramfs )
 log_info "ready for installation."
 
 log_debug "preparing boot device..."
@@ -55,12 +55,12 @@ cp -r /eli/boot/* /boot
 log_debug "boot device ready."
 
 log_debug "determining kernel root parameter..."
-root_param="$(/eli/scripts/root_kparam $ELI_ROOTFS_DEVICE)"
+root_param="$(/eli/bin/root_kparam $ELI_ROOTFS_DEVICE)"
 log_debug "kernel root parameter will be \"$root_param\"."
 
 ELI_BOOTLOADER_CFG_DST="$BOOT_GRUB_DIR/grub.cfg" \
 ELI_ROOTFS_DST="live:$root_param" \
-  /eli/scripts/mkgrub-config 2>&1
+  /eli/bin/mkgrub-config 2>&1
 
 log_info "installing GRUB bootloader..."
 

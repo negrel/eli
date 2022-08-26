@@ -1,2 +1,2 @@
 # Add systemd specific helper scripts
-COPY ./.systemd/helpers/ /eli/scripts/
+COPY ./.systemd/bin/ /eli/bin/

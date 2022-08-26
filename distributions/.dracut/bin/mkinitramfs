@@ -10,7 +10,7 @@ if [ -n "$ELI_TRACE" ]; then
 fi
 
 # Public variables
-: ${ELI_KVER:=$(/eli/scripts/kver)}
+: ${ELI_KVER:=$(/eli/bin/kver)}
 : ${ELI_INITRAMFS_DST:="/boot/initramfs-$ELI_KVER.img"}
 : ${ELI_INITRAMFS_OVERWRITE:="f"}
 

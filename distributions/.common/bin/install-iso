@@ -42,7 +42,7 @@ function generate_grub_cfg {
   rm -f $ISO_GRUB_DIR/grub_live.cfg
   ELI_BOOTLOADER_CFG_DST="$ISO_GRUB_DIR/grub_live.cfg" \
   ELI_ROOTFS_DST="live:CDLABEL=$ELI_VOLUME_ID" \
-    /eli/scripts/mkgrub-config 2>&1
+    /eli/bin/mkgrub-config 2>&1
 }
 
 function generate_iso {
@@ -57,8 +57,8 @@ function generate_iso {
 }
 
 log_info "preparing installation..."
-( source /eli/scripts/mksquashfs )
-( source /eli/scripts/mkinitramfs )
+( source /eli/bin/mksquashfs )
+( source /eli/bin/mkinitramfs )
 log_info "ready for installation."
 
 log_info "setting up iso dir..."

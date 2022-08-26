@@ -1,4 +1,4 @@
 # Add dracut configuration
 COPY ./$ELI_DISTRIB/dracut.conf /etc/dracut.conf.d/99-eli.conf
 
-COPY ./.dracut/scripts /eli/scripts
+COPY ./.dracut/bin/ /eli/bin/

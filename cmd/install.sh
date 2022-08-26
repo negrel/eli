@@ -144,7 +144,7 @@ function main {
     ELI_BOOTLOADER_DEVICE="$boot_dev" \
     ELI_INSTALL_TYPE="" \
     ${options[@]} \
-    /eli/scripts/install \
+    /eli/bin/install \
   || (
     log_error "image installation failed.";
     destroy_ctr $ctr;

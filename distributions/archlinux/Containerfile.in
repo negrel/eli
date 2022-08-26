@@ -34,7 +34,7 @@ RUN passwd -d root
 RUN sed -i -E 's|^NoExtract\s+=\s+.*$||' /etc/pacman.conf
 
 # Link kernel to /boot/vmlinuz-*
-RUN ln /usr/lib/modules/$(/eli/scripts/kver)/vmlinuz /boot/vmlinuz-$(/eli/scripts/kver)
+RUN ln /usr/lib/modules/$(/eli/bin/kver)/vmlinuz /boot/vmlinuz-$(/eli/bin/kver)
 
 # Sets systemd as entrypoint so podman starts containers as system container
 ENTRYPOINT ["/usr/lib/systemd/systemd"]

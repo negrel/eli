@@ -121,7 +121,7 @@ function main {
   ctr_chroot $ctr \
     ELI_INSTALL_TYPE="iso" \
     ${options[@]} \
-    /eli/scripts/install-iso \
+    /eli/bin/install-iso \
   || (
     log_error "ISO image generation failed.";
     destroy_ctr $ctr;
