@@ -1,16 +1,9 @@
 #!/usr/bin/env bash
 
-ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
 source /eli/lib/log.sh
 
-set -e
-
-opt=()
-
-if [ -n "$ELI_TRACE" ]; then
-  set -x
-  opt+="-info"
-fi
+set -euo pipefail
+shopt -s inherit_errexit
 
 : ${ELI_ROOTFS_DST:="/boot/squashfs.img"}
 : ${ELI_ROOTFS_OVERWRITE:="f"}
@@ -21,6 +14,11 @@ if [ -e "$ELI_ROOTFS_DST" -a "$ELI_ROOTFS_OVERWRITE" != "y" ]; then
 fi
 
 log_info "generating rootfs image..."
+
+opt=()
+if [ -n "$ELI_TRACE" ]; then
+  opt+="-info"
+fi
 
 mksquashfs / $ELI_ROOTFS_DST \
   ${opt[@]} -no-progress -noappend -reproducible \

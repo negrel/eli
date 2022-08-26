@@ -13,7 +13,6 @@ while [ $# -gt 0 ]; do
     custom)
       shift
       echo "$1" > /etc/machine-id
-
       exit 0
       ;;
 

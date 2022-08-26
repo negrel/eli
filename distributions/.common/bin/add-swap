@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 
+source /eli/lib/log.sh
+
 set -euo pipefail
 shopt -s inherit_errexit
+
+test "$#" = "0" && log_fatal "$0 expect exactly 1 argument, got $#"
 
 # $1 define the swap device
 echo "$1	none	swap	sw	0	0" >> /etc/fstab

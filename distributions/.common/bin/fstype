@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-set -e
+source /eli/lib/log.sh
 
-if [ -n "$ELI_TRACE" ]; then
-  set -x
-fi
+set -euo pipefail
+shopt -s inherit_errexit
 
-# xargs trim whitespaces
-blkid -s TYPE -o value $@ | tr '\n' ' ' | xargs
+test "$#" = "0" && log_fatal "$0 expect exactly 1 argument, got $#"
+
+blkid -s TYPE -o value "$1" | tr -d '\n'

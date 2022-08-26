@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
 source /eli/lib/log.sh
 source /eli/lib/traps.sh
 
@@ -8,10 +7,6 @@ set -euo pipefail
 shopt -s inherit_errexit
 
 trap exit_trap EXIT
-
-if [ -n "$ELI_TRACE" ]; then
-  set -x
-fi
 
 # Public variables
 : ${ELI_IMAGE:="Eli Linux"}

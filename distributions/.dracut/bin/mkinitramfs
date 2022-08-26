@@ -1,13 +1,9 @@
 #!/usr/bin/env bash
 
-ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
 source /eli/lib/log.sh
 
-set -e
-
-if [ -n "$ELI_TRACE" ]; then
-  set -x
-fi
+set -euo pipefail
+shopt -s inherit_errexit
 
 # Public variables
 : ${ELI_KVER:=$(/eli/bin/kver)}

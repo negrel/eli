@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 
-ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
 source /eli/lib/log.sh
 
-set -e
+set -euo pipefail
+shopt -s inherit_errexit
 
-if [ -n "$ELI_TRACE" ]; then
-  set -x
-fi
+test "$#" = "0" && log_fatal "$0 expect exactly 1 argument, got $#"
 
 (
   eval $(lsblk -nP $1 -o UUID,PARTUUID,LABEL,PARTLABEL)
