@@ -1,6 +1,7 @@
 # Add our grub scripts and config file
-COPY ./.grub/assets /eli/assets
-COPY ./.grub/etc/ /etc
+COPY ./.grub/assets/ /eli/assets/
+COPY ./.grub/etc/ /etc/
+COPY ./.grub/bin/ /eli/bin
 
 # Patch grub so we can specify GRUB_DEVICE and GRUB_DEVICE_BOOT from command line
 RUN sed -i -E 's|^GRUB_DEVICE=(.+)$|GRUB_DEVICE=${GRUB_DEVICE-\1}|g' $(command -v grub-mkconfig)
