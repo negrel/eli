@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 
 source "$SCRIPT_DIR/lib/log.sh"
-source "$SCRIPT_DIR/lib/buildah.sh"
 
 function create_ctr {
   log_debug "creating container from image \"$1\"..."
-  local ctr=$(buildah_from $1)
+  local ctr=$(buildah from $1)
   log_debug "container \"$ctr\" created from image \"$1\"."
 
   echo $ctr
@@ -13,7 +12,7 @@ function create_ctr {
 
 function remove_ctr {
   log_debug "removing container \"$1\"..."
-  buildah_rm $1
+  buildah rm $1
   log_debug "container \"$1\" removed."
 }
 
@@ -21,7 +20,7 @@ function prepare_ctr {
   local ctr="$1"
 
   log_debug "mounting container \"$ctr\" on host..."
-  local mnt_dir=$(buildah_mount $ctr)
+  local mnt_dir=$(buildah mount $ctr)
   log_debug "container \"$ctr\" mounted on host."
 
   # Mounting /proc /dev /sys and /run
@@ -35,14 +34,14 @@ function prepare_ctr {
 
 function unprepare_ctr {
   local ctr="$1"
-  local mnt_dir=$(buildah_mount $ctr)
+  local mnt_dir=$(buildah mount $ctr)
 
   log_debug "unmounting \"/dev\" \"/proc\" \"/sys\" \"/run\" directories..."
   umount -l $mnt_dir/dev $mnt_dir/proc $mnt_dir/sys $mnt_dir/run
   log_debug "directories \"/dev\" \"/proc\" \"/sys\" \"/run\" unmounted."
 
   log_debug "unmounting \"$ctr\"..."
-  buildah_umount $ctr
+  buildah umount $ctr
   log_debug "\"$ctr\" unmounted."
 }
 

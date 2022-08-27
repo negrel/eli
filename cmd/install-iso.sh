@@ -110,7 +110,7 @@ function main {
 
   log_info "setting up container to install image \"$img\"..."
   local ctr="$(setup_ctr $img)"
-  local ctr_dir=$(buildah_mount $ctr)
+  local ctr_dir=$(buildah mount $ctr)
   log_info "container \"$ctr\" based on image \"$img\" ready for installation."
 
   # Mount destination file
