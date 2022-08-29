@@ -5,14 +5,15 @@ source /eli/lib/log.sh
 set -euo pipefail
 shopt -s inherit_errexit
 
-: ${ELI_BOOTLOADER_CFG_DST:="/boot/grub/grub.cfg"}
+: ${GRUB_CONFIG_DST:="/boot/grub/grub.cfg"}
+export GRUB_DEVICE="${GRUB_DEVICE:-""}"
+export GRUB_DEVICE_BOOT="${GRUB_DEVICE_BOOT:-""}"
+
+test -z "$GRUB_DEVICE" && log_fatal "option GRUB_DEVICE is not set."
+test -z "$GRUB_DEVICE_BOOT" && log_fatal "option GRUB_DEVICE_BOOT is not set."
 
 log_info "generating grub config..."
 
-mkdir -p $(dirname $ELI_BOOTLOADER_CFG_DST)
-
-GRUB_DEVICE=${ELI_ROOTFS_DST:-/} \
-GRUB_DEVICE_BOOT=${ELI_BOOTLOADER_DEVICE:-/boot} \
-  grub-mkconfig -o $ELI_BOOTLOADER_CFG_DST >&2
-
+mkdir -p $(dirname $GRUB_CONFIG_DST)
+grub-mkconfig -o $GRUB_CONFIG_DST >&2
 log_info "grub config generated."

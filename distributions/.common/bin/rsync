@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+source /eli/lib/log.sh
+
+set -uo pipefail
+shopt -s inherit_errexit
+
+opts=()
+# archive mode conserve owners, groups, symlinks
+# permissions, modifications times, devices and special files
+opts+=("--archive")
+# Extended attributes
+opts+=("--xattrs")
+# Access times
+opts+=("--atimes")
+# Hard links
+opts+=("--hard-links")
+
+rsync "${opts[@]}" "$@"
+exit_code=$?
+# Ignore vanishing files errors
+if [ "$exit_code" = "24" ]; then
+  exit 0
+fi
+
+exit $exit_code

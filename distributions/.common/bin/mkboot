@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+source /eli/lib/log.sh
+source /eli/lib/traps.sh
+
+set -euo pipefail
+shopt -s inherit_errexit
+
+trap exit_trap EXIT
+
+# Public variables
+: ${ELI_ROOT_DEVICE=""}
+: ${ELI_BOOT_DEVICE=""}
+: ${ELI_BOOT_FS="vfat"}
+: ${ELI_BOOT_OVERWRITE="n"}
+
+test -z "$ELI_BOOT_DEVICE" && log_fatal "option ELI_BOOT_DEVICE is not set."
+test -e "$ELI_BOOT_DEVICE" || log_fatal "ELI_BOOT_DEVICE \"$ELI_BOOT_DEVICE\" does not exist."
+test -w "$ELI_BOOT_DEVICE" || log_fatal "can't write to ELI_BOOT_DEVICE."
+
+test -z "$ELI_ROOT_DEVICE" && log_fatal "option ELI_ROOT_DEVICE is not set."
+
+## Optional public variables
+: ${ELI_BOOTLOADER_TARGET=""}
+
+log_debug "generating initramfs..."
+/eli/bin/mkinitramfs
+log_debug "initramfs generated."
+
+log_debug "determining boot device filesystem..."
+boot_fs="$(/eli/bin/fstype $ELI_BOOT_DEVICE)"
+log_debug "boot device filesystem is \"$boot_fs\"."
+
+# We must overwrite the boot device if it has the wrong filesystem
+# or if it doesn't have one
+if [ "$boot_fs" != "$ELI_BOOT_FS" ] \
+  || [ "$boot_fs" = "" ]; then
+  log_debug "must overwrite boot device filesystem"
+
+  if [ "$ELI_BOOT_OVERWRITE" != "y" ]; then
+    log_warn "must overwrite boot device filesystem, rerun with ELI_BOOT_OVERWRITE=\"y\" to overwrite it."
+  else
+    log_debug "creating boot device filesystem..."
+    FS_TYPE="$ELI_BOOT_FS" FS_DEVICE="$ELI_BOOT_DEVICE" /eli/bin/mkfs
+    log_debug "boot device filesystem created."
+  fi
+fi
+
+log_debug "moving actual \"/boot\" to \"/boot.old\"..."
+mv /boot /boot.old
+log_debug "actual \"/boot\" moved to \"/boot.old\"."
+
+log_debug "mounting boot device..."
+boot_mount="/boot"
+mkdir -p "$boot_mount" && mount "$ELI_BOOT_DEVICE" "$boot_mount"
+log_debug "boot device mounted."
+
+log_info "rsyncing /boot/ into bootfs..."
+/eli/bin/rsync /boot.old/ "$boot_mount"
+log_info "/boot/ rsynced into bootfs."
+
+log_debug "executing bootloader-install..."
+BOOTLOADER_DEVICE="$ELI_BOOT_DEVICE" ROOT_DEVICE="$ELI_ROOT_DEVICE" /eli/bin/bootloader-install
+log_debug "bootloader-install successfully executed."

@@ -4,6 +4,8 @@ ARG ELI_DISTRIB=archlinux
 
 # Install packages required for an install
 RUN pacman -Syu --needed --noconfirm --hookdir $(mktemp -d) \
+  buildah \
+  rsync \
   dracut \
   squashfs-tools \
   grub \
@@ -25,10 +27,10 @@ RUN rm -rf /boot/grub*
 # Remove root password
 RUN passwd -d root
 
+# include "distributions/.common/Containerfile"
 # include "distributions/.grub/Containerfile"
 # include "distributions/.dracut/Containerfile"
 # include "distributions/.systemd/Containerfile"
-# include "distributions/.common/Containerfile"
 
 # Remove NoExtract from pacman conf
 RUN sed -i -E 's|^NoExtract\s+=\s+.*$||' /etc/pacman.conf

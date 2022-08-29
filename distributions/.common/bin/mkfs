@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+: ${ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"}
+source /eli/lib/log.sh
+
+set -euo pipefail
+shopt -s inherit_errexit
+
+: ${FS_TYPE=""}
+: ${FS_DEVICE=""}
+: ${FS_OPTIONS=""}
+
+test -z "$FS_TYPE" && log_fatal "option FS_TYPE is not set."
+test "$FS_TYPE" = "squashfs" && log_fatal "FS_TYPE squashfs is not supported by mkfs, use mksquashfs"
+test -z "$FS_DEVICE" && log_fatal "option FS_DEVICE is not set."
+test ! -e "$FS_DEVICE" && log_fatal "FS_DEVICE \"$FS_DEVICE\" does not exist."
+test ! -w "$FS_DEVICE" && log_fatal "can't write to FS_DEVICE \"$FS_DEVICE\"."
+
+# Creating a fs image.
+log_debug "creating \"$FS_TYPE\" filesytem..."
+
+fs_size=""
+if [ ! -e "$FS_DEVICE" ]; then
+  log_debug "creating $FS_DEVICE file and truncate it..."
+  # Create fs image and truncate it with 1T
+  fs_size="1T"
+  touch "$FS_DEVICE"
+  truncate --size=$fs_size "$FSFS_DEVICE_DST"
+  "$FS_DEVICE file created and truncated."
+fi
+
+mkfs="mkfs.$FS_TYPE"
+
+log_debug "running \"$mkfs\" with options \"$FS_OPTIONS\" on \"$FS_DEVICE\"."
+"$mkfs" $FS_OPTIONS "$FS_DEVICE" < <(yes)
+
+log_debug "\"$FS_TYPE\" filesytem successfully created."

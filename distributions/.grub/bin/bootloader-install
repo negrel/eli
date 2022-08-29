@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+: ${ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"}
+source /eli/lib/log.sh
+
+set -euo pipefail
+shopt -s inherit_errexit
+
+: ${BOOT_DIR="/boot"}
+: ${BOOTLOADER_DEVICE=""}
+: ${ROOT_DEVICE=""}
+: ${BOOTLOADER_TARGET="x86_64-efi"}
+
+test -z "$BOOTLOADER_DEVICE" && log_fatal "option BOOTLOADER_DEVICE is not set."
+test -w "$BOOTLOADER_DEVICE" || log_fatal "can't write to BOOTLOADER_DEVICE \"$BOOTLOADER_DEVICE\"."
+
+test -z "$ROOT_DEVICE" && log_fatal "option ROOT_DEVICE is not set."
+
+log_info "installing GRUB bootloader..."
+
+log_debug "determining kernel root parameter..."
+root_param="$(/eli/bin/root-kparam $ROOT_DEVICE)"
+log_debug "kernel root parameter will be \"$root_param\"."
+
+GRUB_CONFIG_DST="$BOOT_DIR/grub/grub.cfg" \
+GRUB_DEVICE="$root_param" \
+GRUB_DEVICE_BOOT="$BOOTLOADER_DEVICE" \
+  /eli/bin/mkgrub-config 2>&1
+
+grub-install --target="$BOOTLOADER_TARGET" --boot-directory="$BOOT_DIR" \
+  --efi-directory="$BOOT_DIR" \
+  --removable \
+  "$BOOTLOADER_DEVICE"
+
+log_info "GRUB bootloader installed."

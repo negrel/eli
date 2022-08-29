@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+echo "no mkinitramfs binary, your image is incomplete"
+exit 1

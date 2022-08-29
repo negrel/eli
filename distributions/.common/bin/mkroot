@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+ELI_LOG_PREFIX="$(basename $0 | tr 'a-z' 'A-Z')"
+source /eli/lib/log.sh
+source /eli/lib/traps.sh
+
+set -euo pipefail
+shopt -s inherit_errexit
+
+trap exit_trap EXIT
+
+# Public variables
+: ${ELI_ROOT_DEVICE=""}
+: ${ELI_ROOT_FS="ext4"}
+: ${ELI_ROOT_OVERWRITE="n"}
+
+test -z "$ELI_ROOT_DEVICE" && log_fatal "option ELI_ROOT_DEVICE is not set."
+test -e "$ELI_ROOT_DEVICE" || log_fatal "ELI_ROOT_DEVICE \"$ELI_ROOT_DEVICE\" does not exist."
+test -w "$ELI_ROOT_DEVICE" || log_fatal "can't write to ELI_ROOT_DEVICE \"$ELI_ROOT_DEVICE\"."
+
+## Optional variables
+: ${ELI_ROOT_FS_OPTS=""}
+
+log_debug "determining root device filesystem..."
+root_fs="$(/eli/bin/fstype $ELI_ROOT_DEVICE)"
+log_debug "root device filesystem is \"$root_fs\"."
+
+# We must overwrite the root device if it has the wrong filesystem
+# or if it doesn't have one
+if [ "$root_fs" != "$ELI_ROOT_FS" ] \
+  || [ "$root_fs" = "" ]; then
+  log_debug "must overwrite root device filesystem"
+
+  if [ "$ELI_ROOT_OVERWRITE" != "y" ]; then
+    log_warn "must overwrite root device filesystem, rerun with ELI_ROOT_OVERWRITE=\"y\" to overwrite it."
+  else
+    log_debug "creating root device filesystem..."
+    FS_TYPE="$ELI_ROOT_FS" FS_DEVICE="$ELI_ROOT_DEVICE" /eli/bin/mkfs
+    log_debug "root device filesystem created."
+  fi
+fi
+
+log_debug "mounting root device..."
+root_mount="$(mktemp -d)"
+mount "$ELI_ROOT_DEVICE" "$root_mount"
+log_debug "root device mounted."
+
+log_debug "rsyncing / into rootfs..."
+rsync_opts=(--exclude={'dev/*','proc/*','sys/*','run/*','tmp/*','boot/*','eli/'})
+if [ "$ELI_ROOT_OVERWRITE" != "y" ]; then
+  # Skip updating files that exist on receiver
+  rsync_opts+=("--ignore-existing")
+fi
+
+# Ignore vanished files errors
+/eli/bin/rsync "${rsync_opts[@]}" / "$root_mount"
+log_debug "/ rsynced into rootfs."

@@ -116,15 +116,15 @@ function main {
   fi
 
   # Root filesystem device
-  local rootfs_dev="$3"
+  local root_dev="$3"
 
-  if [ -z "$rootfs_dev" ]; then
-    log_error "missing ROOTFS_DEVICE option."
+  if [ -z "$root_dev" ]; then
+    log_error "missing ROOT_DEVICE option."
     clean_exit 1
   fi
 
-  if [ ! -w "$rootfs_dev" ]; then
-    log_error "can't write to rootfs device: \"$rootfs_dev\""
+  if [ ! -w "$root_dev" ]; then
+    log_error "can't write to rootfs device: \"$root_dev\""
     clean_exit 1
   fi
   shift 3
@@ -140,8 +140,9 @@ function main {
 
   log_info "installing image..."
   ctr_chroot $ctr \
-    ELI_ROOTFS_DEVICE="$rootfs_dev" \
-    ELI_BOOTLOADER_DEVICE="$boot_dev" \
+    ELI_IMAGE="$img" \
+    ELI_ROOT_DEVICE="$root_dev" \
+    ELI_BOOT_DEVICE="$boot_dev" \
     ELI_INSTALL_TYPE="" \
     ${options[@]} \
     /eli/bin/install \
