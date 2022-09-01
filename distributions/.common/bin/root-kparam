@@ -10,18 +10,18 @@ test "$#" = "0" && log_fatal "$0 expect exactly 1 argument, got $#"
 (
   eval $(lsblk -nP $1 -o UUID,PARTUUID,LABEL,PARTLABEL)
 
-  if [ ! -z "$UUID" ]; then
-    echo "UUID=$UUID"
-    exit 0
-  else
-    log_warn "no UUID found for \"$1\", trying PARTUUID..."
-  fi
-
   if [ ! -z "$PARTUUID" ]; then
     echo "PARTUUID=$PARTUUID"
     exit 0
   else
-    log_warn "no PARTUUID found for \"$1\", trying LABEL..."
+    log_warn "no PARTUUID found for \"$1\", trying UUID..."
+  fi
+
+  if [ ! -z "$UUID" ]; then
+    echo "UUID=$UUID"
+    exit 0
+  else
+    log_warn "no UUID found for \"$1\", trying LABEL..."
   fi
 
   if [ ! -z "$LABEL" ]; then
