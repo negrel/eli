@@ -12,6 +12,7 @@ trap exit_trap EXIT
 : ${ELI_ROOT_DEVICE=""}
 : ${ELI_BOOT_DEVICE=""}
 : ${ELI_BOOT_FS="vfat"}
+: ${ELI_ROOT_FS=""}
 : ${ELI_BOOT_OVERWRITE="n"}
 
 test -z "$ELI_BOOT_DEVICE" && log_fatal "option ELI_BOOT_DEVICE is not set."
@@ -24,7 +25,7 @@ test -z "$ELI_ROOT_DEVICE" && log_fatal "option ELI_ROOT_DEVICE is not set."
 : ${ELI_BOOTLOADER_TARGET=""}
 
 log_debug "generating initramfs..."
-/eli/bin/mkinitramfs
+ELI_INITRAMFS_OVERWRITE="$ELI_BOOT_OVERWRITE" /eli/bin/mkinitramfs
 log_debug "initramfs generated."
 
 log_debug "determining boot device filesystem..."

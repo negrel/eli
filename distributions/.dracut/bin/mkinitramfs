@@ -9,6 +9,7 @@ shopt -s inherit_errexit
 : ${ELI_KVER:=$(/eli/bin/kver)}
 : ${ELI_INITRAMFS_DST:="/boot/initramfs-$ELI_KVER.img"}
 : ${ELI_INITRAMFS_OVERWRITE:="f"}
+: ${ELI_ROOT_FS:=""}
 
 if [ -f "$ELI_INITRAMFS_DST" -a "$ELI_INITRAMFS_OVERWRITE" != "y" ]; then
   log_warn "initramfs image already exist, skipping generation."
@@ -17,7 +18,7 @@ fi
 
 log_info "generating initramfs image..."
 
-dracut --reproducible --force \
-  $@ "/boot/initramfs-$ELI_KVER.img" "$ELI_KVER" >&2
+dracut --reproducible --force --filesystems "$ELI_ROOT_FS" \
+  "$ELI_INITRAMFS_DST" "$ELI_KVER" >&2
 
 log_info "initramfs image generated."

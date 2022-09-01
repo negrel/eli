@@ -35,9 +35,17 @@ if [ "$root_fs" != "$ELI_ROOT_FS" ] \
     log_warn "must overwrite root device filesystem, rerun with ELI_ROOT_OVERWRITE=\"y\" to overwrite it."
   else
     log_debug "creating root device filesystem..."
-    FS_TYPE="$ELI_ROOT_FS" FS_DEVICE="$ELI_ROOT_DEVICE" /eli/bin/mkfs
+    if [ "$ELI_ROOT_FS" = "squashfs" ]; then
+      FS_DEVICE="$ELI_ROOT_DEVICE" /eli/bin/mksquashfs
+    else
+      FS_TYPE="$ELI_ROOT_FS" FS_DEVICE="$ELI_ROOT_DEVICE" /eli/bin/mkfs
+    fi
     log_debug "root device filesystem created."
   fi
+fi
+
+if [ "$ELI_ROOT_FS" = "squashfs" ]; then
+  exit 0
 fi
 
 log_debug "mounting root device..."

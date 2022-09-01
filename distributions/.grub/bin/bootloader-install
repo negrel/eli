@@ -20,6 +20,10 @@ log_info "installing GRUB bootloader..."
 
 log_debug "determining kernel root parameter..."
 root_param="$(/eli/bin/root-kparam $ROOT_DEVICE)"
+root_fs="$(/eli/bin/fstype $ROOT_DEVICE)"
+if [ "$root_fs" = "squashfs" ]; then
+  root_param="live:$root_param"
+fi
 log_debug "kernel root parameter will be \"$root_param\"."
 
 GRUB_CONFIG_DST="$BOOT_DIR/grub/grub.cfg" \

@@ -5,23 +5,22 @@ source /eli/lib/log.sh
 set -euo pipefail
 shopt -s inherit_errexit
 
-: ${ELI_ROOTFS_DST:="/boot/squashfs.img"}
-: ${ELI_ROOTFS_OVERWRITE:="f"}
+: ${FS_DEVICE:=""}
+: ${FS_OPTIONS=""}
 
-if [ -e "$ELI_ROOTFS_DST" -a "$ELI_ROOTFS_OVERWRITE" != "y" ]; then
-  log_warn "rootfs image already exist, skipping generation."
-  exit 0
-fi
+test -z "$FS_DEVICE" && log_fatal "option FS_DEVICE is not set."
+test ! -e "$FS_DEVICE" && log_fatal "FS_DEVICE \"$FS_DEVICE\" does not exist."
+test ! -w "$FS_DEVICE" && log_fatal "can't write to FS_DEVICE \"$FS_DEVICE\"."
 
-log_info "generating rootfs image..."
+log_debug "generating \"squashfs\" filesystem..."
 
 opt=()
-if [ -n "$ELI_TRACE" ]; then
+if [ "${ELI_TRACE:-"n"}" = "y" ]; then
   opt+="-info"
 fi
 
-mksquashfs / $ELI_ROOTFS_DST \
+mksquashfs / "$FS_DEVICE" \
   ${opt[@]} -no-progress -noappend -reproducible \
   -wildcards -e 'dev/*' 'proc/*' 'sys/*' 'run/*' 'tmp/*' 'boot/*' 'eli' >&2
 
-log_info "rootfs image generated."
+log_debug "\"squashfs\" filesytem successfully created."
