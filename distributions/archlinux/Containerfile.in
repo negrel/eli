@@ -4,7 +4,6 @@ ARG ELI_DISTRIB=archlinux
 
 # Install packages required for an install
 RUN pacman -Syu --needed --noconfirm --hookdir $(mktemp -d) \
-  buildah \
   rsync \
   dracut \
   squashfs-tools \
