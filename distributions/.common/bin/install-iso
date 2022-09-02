@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+echo "no install-iso binary, your image is incomplete" >&2
+exit 1
