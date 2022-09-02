@@ -10,7 +10,7 @@ export GRUB_DEVICE="${GRUB_DEVICE:-""}"
 export GRUB_DEVICE_BOOT="${GRUB_DEVICE_BOOT:-""}"
 
 test -z "$GRUB_DEVICE" && log_fatal "option GRUB_DEVICE is not set."
-test -z "$GRUB_DEVICE_BOOT" && log_fatal "option GRUB_DEVICE_BOOT is not set."
+test -z "$GRUB_DEVICE_BOOT" && log_debug "option GRUB_DEVICE_BOOT is not set."
 
 log_info "generating grub config..."
 

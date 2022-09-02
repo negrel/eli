@@ -9,8 +9,8 @@ shopt -s inherit_errexit
 trap exit_trap EXIT
 
 # Public variables
-: ${ELI_IMAGE:="Eli Linux"}
-: ${ELI_VOLUME_ID:="$(tr -d '[:cntrl:]' <<< "$ELI_IMAGE" | tr -c '[:alnum:]' '_' | tr 'a-z' 'A-Z')"}
+export ELI_IMAGE=${ELI_IMAGE:="Eli Linux"}
+export ELI_VOLUME_ID=${ELI_VOLUME_ID:="$(tr -d '[:cntrl:]' <<< "$ELI_IMAGE" | tr -c '[:alnum:]' '_' | tr 'a-z' 'A-Z')"}
 
 ISO_DST="/eli/iso.iso"
 ISO_DIR="/eli/isodir"
@@ -18,25 +18,20 @@ ISO_BOOT_DIR="$ISO_DIR/boot"
 ISO_GRUB_DIR="$ISO_BOOT_DIR/grub"
 ISO_LIVE_DIR="$ISO_DIR/LiveOS"
 
-function setup_isodir {  
-  # Create directory structure
-  rm -rf "$ISO_DIR"
-  mkdir -p \
-    "$ISO_DIR" \
-    "$ISO_BOOT_DIR" \
-    "$ISO_GRUB_DIR" \
-    "$ISO_LIVE_DIR"
-
-  cp -lr /boot "$ISO_DIR"
-  mv "$ISO_BOOT_DIR/squashfs.img" "$ISO_LIVE_DIR/squashfs.img"
-}
+# Create directory structure
+rm -rf "$ISO_DIR"
+mkdir -p \
+  "$ISO_DIR" \
+  "$ISO_BOOT_DIR" \
+  "$ISO_GRUB_DIR" \
+  "$ISO_LIVE_DIR"
 
 function generate_grub_cfg {
   ln -f /eli/assets/grub_iso.cfg $ISO_GRUB_DIR/grub.cfg
 
-  rm -f $ISO_GRUB_DIR/grub_live.cfg
-  ELI_BOOTLOADER_CFG_DST="$ISO_GRUB_DIR/grub_live.cfg" \
-  ELI_ROOTFS_DST="live:CDLABEL=$ELI_VOLUME_ID" \
+  rm -f "$ISO_GRUB_DIR/grub_live.cfg"
+  GRUB_CONFIG_DST="$ISO_GRUB_DIR/grub_live.cfg" \
+  GRUB_DEVICE="live:CDLABEL=$ELI_VOLUME_ID" \
     /eli/bin/mkgrub-config 2>&1
 }
 
@@ -52,13 +47,24 @@ function generate_iso {
 }
 
 log_info "preparing installation..."
-( source /eli/bin/mksquashfs )
-( source /eli/bin/mkinitramfs )
-log_info "ready for installation."
 
-log_info "setting up iso dir..."
-setup_isodir
-log_info "iso dir setted up."
+log_debug "creating root filesystem..."
+touch "$ISO_BOOT_DIR/squashfs.img"
+FS_DEVICE="$ISO_BOOT_DIR/squashfs.img" /eli/bin/mksquashfs
+log_debug "root filesystem created."
+
+log_debug "generating initramfs..."
+ELI_INITRAMFS_OVERWRITE="y" /eli/bin/mkinitramfs
+log_debug "initramfs generated."
+
+log_debug "copying boot directory and squashfs image..."
+cp -lr /boot "$ISO_DIR"
+log_debug "boot directory copied."
+log_debug "moving squashfs image..."
+mv "$ISO_BOOT_DIR/squashfs.img" "$ISO_LIVE_DIR/squashfs.img"
+log_debug "squashfs image moved."
+
+log_info "ready for installation."
 
 generate_grub_cfg
 
