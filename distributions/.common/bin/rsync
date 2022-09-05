@@ -15,7 +15,8 @@ opts+=("--xattrs")
 opts+=("--atimes")
 # Hard links
 opts+=("--hard-links")
-
+# Delete extraneous files from dest dirs
+opts+=("--delete")
 rsync "${opts[@]}" "$@"
 exit_code=$?
 # Ignore vanishing files errors
