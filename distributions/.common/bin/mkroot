@@ -25,23 +25,23 @@ log_debug "determining root device filesystem..."
 root_fs="$(/eli/bin/fstype $ELI_ROOT_DEVICE)"
 log_debug "root device filesystem is \"$root_fs\"."
 
-# We must overwrite the root device if it has the wrong filesystem
-# or if it doesn't have one
-if [ "$root_fs" != "$ELI_ROOT_FS" ] \
-  || [ "$root_fs" = "" ]; then
-  log_debug "must overwrite root device filesystem"
+# Prevent accidental overwrite
+mkfs=n
+if [ "$root_fs" = "" -o "$ELI_ROOT_OVERWRITE" = "y" ]; then
+  mkfs=y
+else
+  log_warn "must overwrite root device filesystem, rerun with ELI_ROOT_OVERWRITE=\"y\" to overwrite it."
+  exit 0
+fi
 
-  if [ "$ELI_ROOT_OVERWRITE" != "y" ]; then
-    log_warn "must overwrite root device filesystem, rerun with ELI_ROOT_OVERWRITE=\"y\" to overwrite it."
+if [ "$mkfs" = "y" ]; then
+  log_debug "creating root device filesystem..."
+  if [ "$ELI_ROOT_FS" = "squashfs" ]; then
+    FS_DEVICE="$ELI_ROOT_DEVICE" /eli/bin/mksquashfs
   else
-    log_debug "creating root device filesystem..."
-    if [ "$ELI_ROOT_FS" = "squashfs" ]; then
-      FS_DEVICE="$ELI_ROOT_DEVICE" /eli/bin/mksquashfs
-    else
-      FS_TYPE="$ELI_ROOT_FS" FS_DEVICE="$ELI_ROOT_DEVICE" /eli/bin/mkfs
-    fi
-    log_debug "root device filesystem created."
+    FS_TYPE="$ELI_ROOT_FS" FS_DEVICE="$ELI_ROOT_DEVICE" /eli/bin/mkfs
   fi
+  log_debug "root device filesystem created."
 fi
 
 if [ "$ELI_ROOT_FS" = "squashfs" ]; then

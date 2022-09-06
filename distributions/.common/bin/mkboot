@@ -32,19 +32,19 @@ log_debug "determining boot device filesystem..."
 boot_fs="$(/eli/bin/fstype $ELI_BOOT_DEVICE)"
 log_debug "boot device filesystem is \"$boot_fs\"."
 
-# We must overwrite the boot device if it has the wrong filesystem
-# or if it doesn't have one
-if [ "$boot_fs" != "$ELI_BOOT_FS" ] \
-  || [ "$boot_fs" = "" ]; then
-  log_debug "must overwrite boot device filesystem"
+# Prevent accidental overwrite
+mkfs=n
+if [ "$boot_fs" = "" -o "$ELI_BOOT_OVERWRITE" = "y" ]; then
+  mkfs="y"
+else
+  log_error "must overwrite boot device filesystem, rerun with ELI_BOOT_OVERWRITE=\"y\" to overwrite it."
+  exit 0
+fi
 
-  if [ "$ELI_BOOT_OVERWRITE" != "y" ]; then
-    log_warn "must overwrite boot device filesystem, rerun with ELI_BOOT_OVERWRITE=\"y\" to overwrite it."
-  else
-    log_debug "creating boot device filesystem..."
-    FS_TYPE="$ELI_BOOT_FS" FS_DEVICE="$ELI_BOOT_DEVICE" /eli/bin/mkfs
-    log_debug "boot device filesystem created."
-  fi
+if [ "$mkfs" = "y" ]; then
+  log_debug "creating boot device filesystem..."
+  FS_TYPE="$ELI_BOOT_FS" FS_DEVICE="$ELI_BOOT_DEVICE" /eli/bin/mkfs
+  log_debug "boot device filesystem created."
 fi
 
 log_debug "moving actual \"/boot\" to \"/boot.old\"..."
