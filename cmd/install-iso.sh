@@ -119,6 +119,7 @@ function main {
 
   log_info "generating ISO image at \"$dst\"..."
   ctr_chroot $ctr \
+    ELI_IMAGE="$img"
     ELI_INSTALL_TYPE="iso" \
     ${options[@]} \
     /eli/bin/install-iso \
